@@ -4,7 +4,6 @@ import {
   BlockOutlined,
   BookOutlined,
   BorderlessTableOutlined,
-  BoxPlotOutlined,
   CloudSyncOutlined,
   CommentOutlined,
   ExportOutlined,
@@ -19,11 +18,9 @@ import { Menu, message } from "antd";
 import { type ReactNode, useEffect, useState } from "react";
 import { version } from "../package.json";
 import { ChatIndex } from "./components/Chat/ChatIndex.tsx";
-import { ConfigCloud } from "./components/Config/ConfigCloud.tsx";
 import { ConfigLayout } from "./components/Config/ConfigLayout.tsx";
 import { ConfigMain } from "./components/Config/ConfigMain.tsx";
 import { ConfigPlugins } from "./components/Config/ConfigPlugins.tsx";
-import { ConfigVector } from "./components/Config/ConfigVector.tsx";
 import { ConfigVoice } from "./components/Config/ConfigVoice.tsx";
 import { Debug } from "./components/Debug.tsx";
 import { MemoryAction } from "./components/Memory/MemoryAction.tsx";
@@ -42,10 +39,8 @@ const PAGES: Record<string, ReactNode> = {
   "memory-diary": <MemoryDiary />,
   "memory-action": <MemoryAction />,
   "config-main": <ConfigMain />,
-  "config-vector": <ConfigVector />,
   "config-service": <ConfigVoice />,
   "config-layout": <ConfigLayout />,
-  "config-cloud": <ConfigCloud />,
   "config-plugins": <ConfigPlugins />,
   "chat-text": <ChatIndex to="text" />,
   "chat-voice": <ChatIndex to="voice" />,
@@ -312,11 +307,6 @@ export default function App() {
                         icon: <BlockOutlined />,
                       },
                       {
-                        key: "config-vector",
-                        label: "嵌入服务设置",
-                        icon: <BoxPlotOutlined />,
-                      },
-                      {
                         key: "config-service",
                         label: "语音服务设置",
                         icon: <ApiOutlined />,
@@ -325,11 +315,6 @@ export default function App() {
                         key: "config-layout",
                         label: "自定义设置",
                         icon: <LayoutOutlined />,
-                      },
-                      {
-                        key: "config-cloud",
-                        label: "云存储设置",
-                        icon: <CloudSyncOutlined />,
                       },
                       {
                         key: "config-plugins",

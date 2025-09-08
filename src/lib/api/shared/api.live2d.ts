@@ -38,7 +38,7 @@ const rabbitBoy = async () => {
   const l2d = getLive2d();
   const model = await l2d.create({
     path: "/live2d/rabbit-boy/兔兔【新.model3.json",
-    scale: 0.18,
+    scale: 0.35,
     // motionSync: '/live2d/example.motionsync.json'
     // 语音同步嘴形, 需要配合修改 <MessageBox /> / <ChatText /> / <ChatVoice /> 组件, 未来版本可能会支持
     // <MessageBox /> 的使用示例:
@@ -54,7 +54,7 @@ const dogBoyA = async () => {
   const l2d = getLive2d();
   const model = await l2d.create({
     path: "/live2d/dog-boy-a/鱼香天天卷版权所有XIAOPmaiddress.model3.json",
-    scale: 0.13,
+    scale: 0.25,
   });
   return model;
 };
@@ -63,7 +63,7 @@ const dogBoyB = async () => {
   const l2d = getLive2d();
   const model = await l2d.create({
     path: "/live2d/dog-boy-b/鱼香天天卷版权所有守护灵小狗初始版.model3.json",
-    scale: 0.15,
+    scale: 0.28,
   });
   return model;
 };
@@ -72,7 +72,7 @@ const evilBoy = async () => {
   const l2d = getLive2d();
   const model = await l2d.create({
     path: "/live2d/evil-boy/no4.新（基础）.model3.json",
-    scale: 0.11,
+    scale: 0.22,
   });
   return model;
 };
@@ -81,7 +81,25 @@ const darkBoy = async () => {
   const l2d = getLive2d();
   const model = await l2d.create({
     path: "/live2d/dark-boy/紫汐.model3.json",
-    scale: 0.09,
+    scale: 0.18,
+  });
+  return model;
+};
+
+const hijiki = async () => {
+  const l2d = getLive2d();
+  const model = await l2d.create({
+    path: "/live2d/hijiki/runtime/hijiki.model3.json",
+    scale: 0.25,
+  });
+  return model;
+};
+
+const tororo = async () => {
+  const l2d = getLive2d();
+  const model = await l2d.create({
+    path: "/live2d/tororo/runtime/tororo.model3.json",
+    scale: 0.25,
   });
   return model;
 };
@@ -90,7 +108,7 @@ const jiniqi = async () => {
   const l2d = getLive2d();
   const model = await l2d.create({
     path: "/live2d/jiniqi/基尼奇.model3.json",
-    scale: 0.08,
+    scale: 0.16,
   });
   return model;
 };
@@ -99,7 +117,7 @@ const heroBoy = async () => {
   const l2d = getLive2d();
   const model = await l2d.create({
     path: "/live2d/hero-boy/live1.model3.json",
-    scale: 0.09,
+    scale: 0.18,
   });
   return model;
 };
@@ -112,4 +130,6 @@ export const live2dList: Live2dList = [
   { name: "紫色{name}", load: darkBoy },
   { name: "勇者{name}", load: heroBoy },
   { name: "基尼奇", load: jiniqi },
+  { name: "Hijiki", load: hijiki },
+  { name: "Tororo", load: tororo },
 ];
