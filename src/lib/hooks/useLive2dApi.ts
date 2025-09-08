@@ -1,6 +1,7 @@
 import type { Model } from "l2d";
 import { create } from "zustand";
 import { get, live2dList, set } from "../utils.ts";
+import { cleanupLive2d } from "../api/shared/api.live2d.ts";
 
 type API = {
   live2d: Model | null;
@@ -64,6 +65,7 @@ export const useLive2dApi = create<API>()((setState, getState) => ({
     } else {
       const { live2d } = getState();
       live2d?.destroy();
+      cleanupLive2d(); // 清理Live2D实例
       setState({ live2dOpen: false, live2d: null });
     }
     return;
@@ -75,13 +77,16 @@ export const useLive2dApi = create<API>()((setState, getState) => ({
     if (!item) {
       throw new Error("Live2d model not found");
     }
-    live2d?.destroy();
+    // 确保销毁之前的模型实例
+    if (live2d) {
+      live2d.destroy();
+    }
     await set("default_live2d", name);
     if (live2dOpen) {
       const model = await item.load();
       setState({ _loadLive2d: item.load, live2dName: name, live2d: model });
     } else {
-      setState({ _loadLive2d: item.load, live2dName: name });
+      setState({ _loadLive2d: item.load, live2dName: name, live2d: null });
     }
     return;
   },
