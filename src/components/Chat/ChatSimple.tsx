@@ -2,12 +2,12 @@ import emojiReg from "emoji-regex";
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { db } from "../../lib/db/index.ts";
-import { useAIMotionProcessor } from "../../lib/hooks/useAIMotionProcessor.ts";
-import { useChatApi } from "../../lib/hooks/useChatApi.ts";
-import { useListenApi } from "../../lib/hooks/useListenApi.ts";
-import { useLive2dApi } from "../../lib/hooks/useLive2dApi.ts";
-import { useSpeakApi } from "../../lib/hooks/useSpeakApi.ts";
-import { useStates } from "../../lib/hooks/useStates.ts";
+import { useAIMotionProcessor } from "../../hooks/useAIMotionProcessor.ts";
+import { useChatApi } from "../../hooks/useChatApi.ts";
+import { useListenApi } from "../../hooks/useListenApi.ts";
+import { useLive2dApi } from "../../hooks/useLive2dApi.ts";
+import { useSpeakApi } from "../../hooks/useSpeakApi.ts";
+import { useStates } from "../../hooks/useStates.ts";
 import { sleep, uuid } from "../../lib/utils.ts";
 
 import {
@@ -18,7 +18,6 @@ import {
 } from "@ant-design/icons";
 import { Sender } from "@ant-design/x";
 import { Button, type GetRef, Popconfirm, Popover } from "antd";
-import { MessageBox } from "./MessageBox.tsx";
 
 interface SimpleMessage {
   role: "user" | "assistant" | "system";

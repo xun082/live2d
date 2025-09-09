@@ -28,7 +28,7 @@
 
 ## 1 项目说明
 
-本项目希望如*流浪地球2* (<https://digitallife.ac.cn>) 那样, 创造一个有自己的情感、记忆的"数字生命". 并在现阶段通过 `Live2d` 技术, 使其有更好的交互效果 (如[Neuro Sama](https://www.bilibili.com/video/BV1Db1WYgESn/?share_source=copy_web&vd_source=f73d7b1cc6b3e028bd1d6a660f91c4f1)). 相比[同类项目](https://github.com/t41372/Open-LLM-VTuber), 本项目使用更为简单 (直接在 <https://being.leafyee.xyz> 即可体验), 且记忆功能更为强大.
+本项目希望如*流浪地球 2* (<https://digitallife.ac.cn>) 那样, 创造一个有自己的情感、记忆的"数字生命". 并在现阶段通过 `Live2d` 技术, 使其有更好的交互效果 (如[Neuro Sama](https://www.bilibili.com/video/BV1Db1WYgESn/?share_source=copy_web&vd_source=f73d7b1cc6b3e028bd1d6a660f91c4f1)). 相比[同类项目](https://github.com/t41372/Open-LLM-VTuber), 本项目使用更为简单 (直接在 <https://being.leafyee.xyz> 即可体验), 且记忆功能更为强大.
 
 关于长时记忆, 本项目参考了多篇论文, 设计了一个独特而创新的记忆系统. 详见[2 长时记忆](#2-长时记忆).
 
@@ -57,7 +57,7 @@
 
 ![](./readme/refer-3.png)
 
-**Recursively Summarizing Enables Long-Term Dialogue Memory in Large Language Models** (Wang et al., 2024): 通过递归生成摘要/记忆来实现长时记忆. 具体来讲, LLMs首先记忆小的对话上下文, 然后递归地使用之前的记忆和后续的上下文来生成新的记忆.
+**Recursively Summarizing Enables Long-Term Dialogue Memory in Large Language Models** (Wang et al., 2024): 通过递归生成摘要/记忆来实现长时记忆. 具体来讲, LLMs 首先记忆小的对话上下文, 然后递归地使用之前的记忆和后续的上下文来生成新的记忆.
 
 ![](./readme/refer-1.png)
 
@@ -75,12 +75,12 @@
 
 ### 2.2 本项目设计
 
-长时记忆模块的要解决的核心问题为多次对话间AI回复的连贯性. 本项目设计了"用户画像"、"自我概念"、"日记"和"记忆检索"机制：在每次对话结束后, AI模型将基于本次对话全文, 生成/更新使用者的"用户画像" (类似于 Zhong et al., 2023)、自身的"自我概念" (即AI模型对自己的认知, 在与用户的对话中学到的知识等)、对本次对话中提到的事件的总结.
- 
-生成的"总结"将被词嵌入模型向量化后存入用户专属的记忆库. 在用户的对话过程中, 当AI接收到用户输入时, 可以选择通过 Function Calling 调取记忆, 并给出想要调取的记忆的文字描述；系统将先把AI给出的描述同样进行向量化, 之后在记忆库中找出相关性最高的数条记忆并返回给AI模型；AI模型得到记忆后, 生成对用户的回复.
+长时记忆模块的要解决的核心问题为多次对话间 AI 回复的连贯性. 本项目设计了"用户画像"、"自我概念"、"日记"和"记忆检索"机制：在每次对话结束后, AI 模型将基于本次对话全文, 生成/更新使用者的"用户画像" (类似于 Zhong et al., 2023)、自身的"自我概念" (即 AI 模型对自己的认知, 在与用户的对话中学到的知识等)、对本次对话中提到的事件的总结.
+
+生成的"总结"将被词嵌入模型向量化后存入用户专属的记忆库. 在用户的对话过程中, 当 AI 接收到用户输入时, 可以选择通过 Function Calling 调取记忆, 并给出想要调取的记忆的文字描述；系统将先把 AI 给出的描述同样进行向量化, 之后在记忆库中找出相关性最高的数条记忆并返回给 AI 模型；AI 模型得到记忆后, 生成对用户的回复.
 
 当前判断"一次对话结束"的标准为: 用户主动结束对话, 或连续数小时 (当前默认为八小时) 无新增对话. 综上所述, 处理逻辑如下图所示：
- 
+
 > 处理逻辑示意图
 
 ![](./readme/model-1.png)

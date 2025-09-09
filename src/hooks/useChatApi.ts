@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { create } from "zustand";
-import { get, set } from "../utils.ts";
+import { get, set } from "../lib/utils.ts";
 import { useLive2DMotions } from "./useLive2DMotions.ts";
 
 type API = {

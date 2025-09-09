@@ -10,9 +10,9 @@ import { Button, Typography } from "antd";
 // @ts-expect-error markdown-it is not type-safe
 import markdownit from "markdown-it";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useChatApi } from "../../lib/hooks/useChatApi.ts";
-import { useSpeakApi } from "../../lib/hooks/useSpeakApi.ts";
-import { useStates } from "../../lib/hooks/useStates.ts";
+import { useChatApi } from "../../hooks/useChatApi.ts";
+import { useSpeakApi } from "../../hooks/useSpeakApi.ts";
+import { useStates } from "../../hooks/useStates.ts";
 import { getDate } from "../../lib/utils.ts";
 
 const md = markdownit({ html: true, breaks: true });
