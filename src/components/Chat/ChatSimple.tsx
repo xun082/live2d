@@ -1,13 +1,14 @@
+import emojiReg from "emoji-regex";
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
+import { db } from "../../lib/db/index.ts";
+import { useAIMotionProcessor } from "../../lib/hooks/useAIMotionProcessor.ts";
 import { useChatApi } from "../../lib/hooks/useChatApi.ts";
 import { useListenApi } from "../../lib/hooks/useListenApi.ts";
 import { useLive2dApi } from "../../lib/hooks/useLive2dApi.ts";
 import { useSpeakApi } from "../../lib/hooks/useSpeakApi.ts";
 import { useStates } from "../../lib/hooks/useStates.ts";
-import { db } from "../../lib/db/index.ts";
-import { uuid, sleep } from "../../lib/utils.ts";
-import emojiReg from "emoji-regex";
+import { sleep, uuid } from "../../lib/utils.ts";
 
 import {
   ClearOutlined,
@@ -35,7 +36,10 @@ export function ChatSimple() {
   const usedToken = useChatApi((state) => state.usedToken);
   const setUsedToken = useChatApi((state) => state.setUsedToken);
   const openaiModelName = useChatApi((state) => state.openaiModelName);
-  const addThinkCache = useChatApi((state) => state.addThinkCache);
+  const processAIResponse = useChatApi((state) => state.processAIResponse);
+
+  // Initialize AI motion processor
+  useAIMotionProcessor();
 
   const speak = useSpeakApi((state) => state.speak);
   const listen = useListenApi((state) => state.listen);
@@ -135,7 +139,35 @@ export function ChatSimple() {
       const relevantMemories = await db.searchMemories(text, 3);
 
       // 构建系统提示
-      let systemPrompt = "你是一个友善的AI助手。";
+      let systemPrompt = `你是一个友善的AI助手。你可以通过在回复中包含特殊的动作指令来控制Live2D模型的动作。
+
+可用的动作指令：
+- [MOTION:Idle] - 空闲/休息动作
+- [MOTION:Tap] - 开心/互动动作（有变体：0,1,2）
+- [MOTION:Flick] - 思考/一般动作
+- [MOTION:FlickUp] - 惊讶/兴奋动作
+- [MOTION:FlickDown] - 失望/难过动作
+
+动作指令使用策略：
+1. **开头动作** - 根据整体情绪设置开场动作
+2. **中间动作** - 在关键转折点、重点内容、情绪变化时插入动作
+3. **结尾动作** - 以合适的动作结束，强化最终情感
+
+使用指南和示例：
+• 回答问题时："[MOTION:Flick] 让我想想...这是一个很好的问题。[MOTION:Tap] 我认为答案是...[MOTION:Idle]"
+• 表示开心时："[MOTION:Tap] 哈哈，太好了！[MOTION:Tap:1] 我很高兴能帮助你[MOTION:Tap:2]"
+• 解释复杂概念："[MOTION:Flick] 这个概念比较复杂...首先...[MOTION:FlickUp] 哇，关键在于...[MOTION:Tap] 这样就清楚了！"
+• 表示惊讶："[MOTION:FlickUp] 哇，这真是太令人惊讶了！[MOTION:Flick] 让我仔细想想...[MOTION:Tap] 确实很有趣！"
+• 表示抱歉："[MOTION:FlickDown] 很抱歉...[MOTION:Flick] 让我换个方式...[MOTION:Tap] 希望这样更好！"
+• 打招呼："[MOTION:Tap:1] 你好！[MOTION:Flick] 我是你的AI助手，[MOTION:Tap] 很高兴为你服务！"
+• 告别："[MOTION:Tap] 很高兴和你聊天！[MOTION:Flick] 如果还有问题随时找我，[MOTION:Tap:2] 再见！"
+
+动作节奏建议：
+- 短回复（1-2句）：开头+结尾各一个动作
+- 中等回复（3-5句）：开头+中间+结尾各一个动作  
+- 长回复（6句以上）：开头+多个中间转折点+结尾，保持动作丰富
+
+请在回复中自然地使用这些动作指令，让对话更加生动有趣。动作要与内容情感匹配，在关键时刻增强表达效果。`;
       if (relevantMemories.length > 0) {
         systemPrompt +=
           "\n\n相关记忆：\n" +
@@ -164,11 +196,19 @@ export function ChatSimple() {
 
       await setUsedToken(tokens);
 
+      // Process motion commands first (before cleaning for display)
+      processAIResponse(assistantContent);
+
+      // Remove motion commands from content for display and speech
+      const cleanContent = assistantContent
+        .replace(/\[MOTION:\w+(?::\d+)?\]/g, "")
+        .trim();
+
       // 语音合成
       const emoji = emojiReg();
       const tts =
         typeof speak === "function"
-          ? speak(assistantContent.replace(emoji, "")).then(({ audio }) =>
+          ? speak(cleanContent.replace(emoji, "")).then(({ audio }) =>
               db.addAudioCache({
                 timestamp: time,
                 audio: audio.buffer
@@ -191,7 +231,7 @@ export function ChatSimple() {
       let current = "";
       let steps = "";
 
-      for (const w of assistantContent) {
+      for (const w of cleanContent) {
         current += w;
 
         const assistantMessage: SimpleMessage = {
@@ -219,7 +259,7 @@ export function ChatSimple() {
       // 保存最终的助手消息
       const finalAssistantMessage: SimpleMessage = {
         role: "assistant",
-        content: assistantContent,
+        content: cleanContent,
         timestamp: time,
         uuid: uuid(),
       };

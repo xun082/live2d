@@ -33,19 +33,12 @@ export interface AudioCache {
   audio: ArrayBuffer;
 }
 
-export interface ThinkCache {
-  id?: number;
-  timestamp: number;
-  content: string;
-}
-
 // 数据库类
 export class DigitalLifeDB extends Dexie {
   chatMessages!: EntityTable<ChatMessage, "id">;
   chatSessions!: EntityTable<ChatSession, "id">;
   memories!: EntityTable<Memory, "id">;
   audioCache!: EntityTable<AudioCache, "id">;
-  thinkCache!: EntityTable<ThinkCache, "id">;
 
   constructor() {
     super("DigitalLifeDB");
@@ -55,7 +48,6 @@ export class DigitalLifeDB extends Dexie {
       chatSessions: "++id, name, createdAt, updatedAt, isActive",
       memories: "++id, timestamp, importance, tags",
       audioCache: "++id, timestamp",
-      thinkCache: "++id, timestamp",
     });
   }
 
@@ -122,7 +114,7 @@ export class DigitalLifeDB extends Dexie {
   }
 
   // 搜索记忆（简单的文本搜索，替代向量搜索）
-  async searchMemories(query: string, limit: number = 10): Promise<Memory[]> {
+  async searchMemories(query: string, limit = 10): Promise<Memory[]> {
     const keywords = query
       .toLowerCase()
       .split(" ")
@@ -146,7 +138,7 @@ export class DigitalLifeDB extends Dexie {
   }
 
   // 获取最近的记忆
-  async getRecentMemories(limit: number = 20): Promise<Memory[]> {
+  async getRecentMemories(limit = 20): Promise<Memory[]> {
     return await this.memories
       .orderBy("timestamp")
       .reverse()
@@ -165,29 +157,13 @@ export class DigitalLifeDB extends Dexie {
     return await this.audioCache.where("timestamp").equals(timestamp).first();
   }
 
-  // 添加思考缓存
-  async addThinkCache(cache: Omit<ThinkCache, "id">): Promise<number> {
-    const id = await this.thinkCache.add(cache);
-    return id as number;
-  }
-
-  // 获取思考缓存
-  async getThinkCache(timestamp: number): Promise<ThinkCache | undefined> {
-    return await this.thinkCache.where("timestamp").equals(timestamp).first();
-  }
-
   // 清理旧数据
-  async cleanupOldData(daysToKeep: number = 30): Promise<void> {
+  async cleanupOldData(daysToKeep = 30): Promise<void> {
     const cutoffTime = Date.now() - daysToKeep * 24 * 60 * 60 * 1000;
 
-    await this.transaction(
-      "rw",
-      [this.audioCache, this.thinkCache],
-      async () => {
-        await this.audioCache.where("timestamp").below(cutoffTime).delete();
-        await this.thinkCache.where("timestamp").below(cutoffTime).delete();
-      }
-    );
+    await this.transaction("rw", [this.audioCache], async () => {
+      await this.audioCache.where("timestamp").below(cutoffTime).delete();
+    });
   }
 
   // 清空所有数据
@@ -196,7 +172,6 @@ export class DigitalLifeDB extends Dexie {
     await this.chatSessions.clear();
     await this.memories.clear();
     await this.audioCache.clear();
-    await this.thinkCache.clear();
   }
 
   // 获取所有记忆

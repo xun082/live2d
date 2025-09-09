@@ -1,5 +1,4 @@
 import {
-  BulbOutlined,
   CopyOutlined,
   InfoCircleOutlined,
   LoadingOutlined,
@@ -7,7 +6,7 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import { Bubble } from "@ant-design/x";
-import { Button, Popover, Tag, Typography } from "antd";
+import { Button, Typography } from "antd";
 // @ts-expect-error markdown-it is not type-safe
 import markdownit from "markdown-it";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -39,7 +38,6 @@ export function MessageBoxItem({
 }) {
   const messageApi = useStates((state) => state.messageApi);
   const audiosCache = useSpeakApi((state) => state.audiosCache);
-  const thinkCache = useChatApi((state) => state.thinkCache);
 
   const userName = "用户";
   const selfName = "小助手";
@@ -50,10 +48,6 @@ export function MessageBoxItem({
   const audio = useMemo(() => {
     return audiosCache.find((a) => a.timestamp === message.timestamp)?.audio;
   }, [audiosCache, message.timestamp]);
-
-  const think = useMemo(() => {
-    return thinkCache.find((t) => t.timestamp === message.timestamp)?.content;
-  }, [thinkCache, message.timestamp]);
 
   const playAudio = () => {
     if (!audio) {
@@ -141,18 +135,6 @@ export function MessageBoxItem({
               onClick={playAudio}
               disabled={isPlaying}
             />
-          )}
-          {think && (
-            <Popover
-              content={
-                <div className="max-w-md">
-                  <Typography.Text>{think}</Typography.Text>
-                </div>
-              }
-              title="思考过程"
-            >
-              <Button type="text" size="small" icon={<BulbOutlined />} />
-            </Popover>
           )}
         </div>
       }
