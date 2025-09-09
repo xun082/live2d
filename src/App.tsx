@@ -22,6 +22,7 @@ import { ConfigMain } from "./components/Config/ConfigMain.tsx";
 
 import { ConfigVoice } from "./components/Config/ConfigVoice.tsx";
 import { Debug } from "./components/Debug.tsx";
+import { Live2DController } from "./components/Live2DController.tsx";
 import { MemoryAction } from "./components/Memory/MemoryAction.tsx";
 import { MemoryDiary } from "./components/Memory/MemoryDiary.tsx";
 import { MemoryMain } from "./components/Memory/MemoryMain.tsx";
@@ -40,6 +41,7 @@ const PAGES: Record<string, ReactNode> = {
   "config-main": <ConfigMain />,
   "config-service": <ConfigVoice />,
   "config-layout": <ConfigLayout />,
+  "live2d-controller": <Live2DController />,
   "chat-text": <ChatSimple />,
   "chat-voice": <ChatSimple />,
 };
@@ -293,6 +295,11 @@ export default function App() {
                         icon: <AudioOutlined />,
                       },
                     ],
+                  },
+                  {
+                    key: "live2d-controller",
+                    label: "Live2D控制",
+                    icon: <LayoutOutlined />,
                   },
                   {
                     key: "config",
