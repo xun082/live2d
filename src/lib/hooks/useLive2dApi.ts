@@ -77,10 +77,11 @@ export const useLive2dApi = create<API>()((setState, getState) => ({
     if (!item) {
       throw new Error("Live2d model not found");
     }
-    // 确保销毁之前的模型实例
+    // 确保销毁之前的模型实例并清理Live2D
     if (live2d) {
       live2d.destroy();
     }
+    cleanupLive2d(); // 清理Live2D实例
     await set("default_live2d", name);
     if (live2dOpen) {
       const model = await item.load();

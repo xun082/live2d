@@ -1,249 +1,197 @@
 import {
-	CloudDownloadOutlined,
-	CloudUploadOutlined,
-	DeleteOutlined,
-	ExportOutlined,
-	ImportOutlined,
-	SaveOutlined,
-} from '@ant-design/icons'
-import {
-	Button,
-	Form,
-	Input,
-	Popconfirm,
-	Popover,
-	Space,
-	Tooltip,
-	Upload,
-} from 'antd'
-import { useRef, useState } from 'react'
-import { flushSync } from 'react-dom'
-import { useMemory } from '../../lib/hooks/useMemory.ts'
-import { usePlugins } from '../../lib/hooks/usePlugins.ts'
-import { useStates } from '../../lib/hooks/useStates.ts'
+  DeleteOutlined,
+  ExportOutlined,
+  ImportOutlined,
+} from "@ant-design/icons";
+import { Button, Form, Input, Popconfirm, Space, Upload } from "antd";
+import { useRef, useState } from "react";
+import { flushSync } from "react-dom";
+import { useStates } from "../../lib/hooks/useStates.ts";
+import { db } from "../../lib/db/index.ts";
 
 export function MemoryAction() {
-	const resetAllMemory = useMemory((state) => state.resetAllMemory)
-	const saveAllMemory = useMemory((state) => state.saveAllMemory)
-	const importAllMemory = useMemory((state) => state.importAllMemory)
-	const exportAllMemory = useMemory((state) => state.exportAllMemory)
+  const disabled = useStates((state) => state.disabled);
+  const setDisabled = useStates((state) => state.setDisabled);
+  const messageApi = useStates((state) => state.messageApi);
 
-	const setS3MemoryKey = usePlugins((state) => state.setS3MemoryKey)
-	const s3MemoryKey = usePlugins((state) => state.s3MemoryKey)
-	const putToS3 = usePlugins((state) => state.putToS3)
-	const getFromS3 = usePlugins((state) => state.getFromS3)
+  const [exportForm] = Form.useForm();
+  const [importForm] = Form.useForm();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-	const messageApi = useStates((state) => state.messageApi)
-	const disabled = useStates((state) => state.disabled)
-	const setDisabled = useStates((state) => state.setDisabled)
+  // 重置所有记忆
+  const resetAllMemory = async () => {
+    try {
+      flushSync(() => setDisabled(true));
 
-	const [s3MemoryKeyModified, setS3MemoryKeyModified] = useState(false)
+      // 清空IndexedDB中的所有数据
+      await db.clearAllData();
 
-	const [openDeleteMemory, setOpenDeleteMemory] = useState<boolean>(false)
-	const deleteMemoryText = useRef<string>('')
-	const [form] = Form.useForm()
+      messageApi?.success("所有记忆已重置");
+    } catch (error) {
+      messageApi?.error(
+        error instanceof Error ? error.message : "重置记忆失败"
+      );
+    } finally {
+      setDisabled(false);
+    }
+  };
 
-	return (
-		<div className='w-full bg-white border border-blue-900 rounded-md px-5 pb-0 pt-4 overflow-auto max-h-full'>
-			<Form
-				form={form}
-				layout='vertical'
-				initialValues={{
-					s3MemoryKey,
-				}}
-			>
-				<Form.Item label='导出记忆'>
-					<Button
-						block
-						icon={<ExportOutlined />}
-						onClick={async () => {
-							await saveAllMemory()
-								.then((path) => messageApi?.success(`记忆已导出至 ${path}`))
-								.catch(() => {})
-						}}
-					>
-						导出记忆
-					</Button>
-				</Form.Item>
-				<Form.Item label='导入记忆'>
-					<Upload.Dragger
-						showUploadList={false}
-						accept='.json'
-						beforeUpload={async (file) => {
-							try {
-								const json = await file.text()
-								await importAllMemory(json)
-								messageApi?.success('记忆导入成功')
-							} catch (e) {
-								messageApi?.error(
-									`记忆导入失败: ${e instanceof Error ? e.message : e}`,
-								)
-							}
-							return false
-						}}
-					>
-						<Button type='text' block icon={<ImportOutlined />}>
-							导入记忆
-						</Button>
-						<p className='text-xs mt-[0.3rem]'>
-							可点击上传或直接拖拽文件到此处
-						</p>
-					</Upload.Dragger>
-				</Form.Item>
-				<Form.Item label='重置记忆'>
-					<Popover
-						title='确定要重置所有记忆吗, 此操作无法撤销'
-						trigger='click'
-						open={openDeleteMemory}
-						onOpenChange={setOpenDeleteMemory}
-						content={
-							<>
-								<div className='mb-3'>
-									<Input
-										placeholder='请输入"删除所有记忆"后点击确定'
-										onChange={(e) => {
-											deleteMemoryText.current = e.target.value
-										}}
-									/>
-								</div>
-								<div className='flex justify-between items-center gap-3'>
-									<Button
-										block
-										onClick={async () => {
-											if (deleteMemoryText.current === '删除所有记忆') {
-												await resetAllMemory()
-												messageApi?.success('已重置所有记忆')
-											} else {
-												messageApi?.error('输入错误')
-											}
-											setOpenDeleteMemory(false)
-										}}
-									>
-										确定
-									</Button>
-									<Button
-										block
-										type='primary'
-										onClick={() => setOpenDeleteMemory(false)}
-									>
-										取消
-									</Button>
-								</div>
-							</>
-						}
-					>
-						<Button block danger icon={<DeleteOutlined />}>
-							重置所有记忆
-						</Button>
-					</Popover>
-				</Form.Item>
-				<hr className='border-t border-blue-900 mb-4' />
-				<Form.Item label='云存储中用于存储记忆的键名'>
-					<Space.Compact block>
-						<Tooltip title='清除已保存的值' color='blue'>
-							<Button
-								icon={<DeleteOutlined />}
-								onClick={async () => {
-									await setS3MemoryKey()
-									setS3MemoryKeyModified(false)
-									form.setFieldsValue({ s3MemoryKey: '' })
-									messageApi?.success('记忆键名已清除')
-								}}
-							/>
-						</Tooltip>
-						<Form.Item noStyle name='s3MemoryKey'>
-							<Input
-								className='w-full'
-								onChange={() => setS3MemoryKeyModified(true)}
-							/>
-						</Form.Item>
-						<Tooltip title='保存修改' color='blue'>
-							<Button
-								type={s3MemoryKeyModified ? 'primary' : 'default'}
-								onClick={async () => {
-									const key = form.getFieldValue('s3MemoryKey')
-									await setS3MemoryKey(key || '')
-									setS3MemoryKeyModified(false)
-									messageApi?.success('记忆键名已更新')
-								}}
-								icon={<SaveOutlined />}
-							/>
-						</Tooltip>
-					</Space.Compact>
-				</Form.Item>
-				<Form.Item>
-					<div className='flex justify-between items-center gap-4'>
-						<Popconfirm
-							title='此操作将覆盖云端记忆，确定要继续吗？'
-							onConfirm={async () => {
-								if (!s3MemoryKey) {
-									messageApi?.error('请先设置用于存储记忆的键名')
-									return
-								}
-								try {
-									flushSync(() => setDisabled('上传记忆中'))
-									const memory = await exportAllMemory()
-									await putToS3(s3MemoryKey, memory)
-									messageApi?.success(`记忆已上传至 ${s3MemoryKey} 中`)
-								} catch (e) {
-									messageApi?.error(
-										`记忆上传失败: ${e instanceof Error ? e.message : e}`,
-									)
-								} finally {
-									setDisabled(false)
-								}
-							}}
-							okText='确定'
-							cancelText='取消'
-						>
-							<Button
-								block
-								disabled={
-									disabled === '下载记忆中' || disabled === '上传记忆中'
-								}
-								loading={disabled === '上传记忆中'}
-								icon={<CloudUploadOutlined />}
-							>
-								上传记忆至云端
-							</Button>
-						</Popconfirm>
-						<Popconfirm
-							title='此操作将覆盖本地记忆，确定要继续吗？'
-							onConfirm={async () => {
-								if (!s3MemoryKey) {
-									messageApi?.error('请先设置用于存储记忆的键名')
-									return
-								}
-								try {
-									flushSync(() => setDisabled('下载记忆中'))
-									const memory = await getFromS3(s3MemoryKey)
-									await importAllMemory(memory || '')
-									messageApi?.success(`已从 ${s3MemoryKey} 中导入记忆`)
-								} catch (e) {
-									messageApi?.error(
-										`记忆下载失败: ${e instanceof Error ? e.message : e}`,
-									)
-								} finally {
-									setDisabled(false)
-								}
-							}}
-							okText='确定'
-							cancelText='取消'
-						>
-							<Button
-								block
-								disabled={
-									disabled === '上传记忆中' || disabled === '下载记忆中'
-								}
-								loading={disabled === '下载记忆中'}
-								icon={<CloudDownloadOutlined />}
-							>
-								从云端导入记忆
-							</Button>
-						</Popconfirm>
-					</div>
-				</Form.Item>
-			</Form>
-		</div>
-	)
+  // 导出记忆
+  const exportAllMemory = async () => {
+    try {
+      flushSync(() => setDisabled(true));
+
+      const memories = await db.getAllMemories();
+      const sessions = await db.getAllSessions();
+      const messages = await db.getAllMessages();
+
+      const exportData = {
+        memories,
+        sessions,
+        messages,
+        exportTime: new Date().toISOString(),
+        version: "2.0.0",
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `digital-life-backup-${
+        new Date().toISOString().split("T")[0]
+      }.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      messageApi?.success("记忆导出成功");
+    } catch (error) {
+      messageApi?.error(
+        error instanceof Error ? error.message : "导出记忆失败"
+      );
+    } finally {
+      setDisabled(false);
+    }
+  };
+
+  // 导入记忆
+  const importAllMemory = async (file: File) => {
+    try {
+      flushSync(() => setDisabled(true));
+
+      const text = await file.text();
+      const data = JSON.parse(text);
+
+      // 验证数据格式
+      if (!data.memories || !Array.isArray(data.memories)) {
+        throw new Error("无效的备份文件格式");
+      }
+
+      // 清空现有数据
+      await db.clearAllData();
+
+      // 导入记忆
+      if (data.memories.length > 0) {
+        for (const memory of data.memories) {
+          await db.addMemory(memory);
+        }
+      }
+
+      // 导入会话
+      if (data.sessions && Array.isArray(data.sessions)) {
+        for (const session of data.sessions) {
+          await db.createSession(session.name);
+        }
+      }
+
+      // 导入消息
+      if (data.messages && Array.isArray(data.messages)) {
+        for (const message of data.messages) {
+          await db.addMessage(message);
+        }
+      }
+
+      messageApi?.success(`成功导入 ${data.memories.length} 条记忆`);
+    } catch (error) {
+      messageApi?.error(
+        error instanceof Error ? error.message : "导入记忆失败"
+      );
+    } finally {
+      setDisabled(false);
+    }
+  };
+
+  return (
+    <div className="w-full max-h-full overflow-auto p-4 bg-white rounded-md border border-blue-900">
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-lg font-semibold mb-4">记忆管理</h3>
+          <Space direction="vertical" size="middle" className="w-full">
+            {/* 重置记忆 */}
+            <div className="p-4 border rounded-lg">
+              <h4 className="font-medium mb-2">重置所有记忆</h4>
+              <p className="text-sm text-gray-600 mb-3">
+                此操作将清空所有聊天记录、记忆和缓存数据，且无法恢复。
+              </p>
+              <Popconfirm
+                title="确定要重置所有记忆吗？"
+                description="此操作不可逆，建议先导出备份。"
+                onConfirm={resetAllMemory}
+                okText="确定"
+                cancelText="取消"
+              >
+                <Button
+                  danger
+                  icon={<DeleteOutlined />}
+                  disabled={disabled !== false}
+                >
+                  重置所有记忆
+                </Button>
+              </Popconfirm>
+            </div>
+
+            {/* 导出记忆 */}
+            <div className="p-4 border rounded-lg">
+              <h4 className="font-medium mb-2">导出记忆备份</h4>
+              <p className="text-sm text-gray-600 mb-3">
+                将所有记忆数据导出为JSON文件，可用于备份或迁移。
+              </p>
+              <Button
+                type="primary"
+                icon={<ExportOutlined />}
+                onClick={exportAllMemory}
+                disabled={disabled !== false}
+              >
+                导出记忆
+              </Button>
+            </div>
+
+            {/* 导入记忆 */}
+            <div className="p-4 border rounded-lg">
+              <h4 className="font-medium mb-2">导入记忆备份</h4>
+              <p className="text-sm text-gray-600 mb-3">
+                从JSON备份文件恢复记忆数据。注意：这将覆盖现有的所有数据。
+              </p>
+              <Upload
+                accept=".json"
+                showUploadList={false}
+                beforeUpload={(file) => {
+                  importAllMemory(file);
+                  return false; // 阻止自动上传
+                }}
+                disabled={disabled !== false}
+              >
+                <Button icon={<ImportOutlined />} disabled={disabled !== false}>
+                  选择备份文件
+                </Button>
+              </Upload>
+            </div>
+          </Space>
+        </div>
+      </div>
+    </div>
+  );
 }

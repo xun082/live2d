@@ -3,7 +3,6 @@ import {
   AudioOutlined,
   BlockOutlined,
   BookOutlined,
-  BorderlessTableOutlined,
   CloudSyncOutlined,
   CommentOutlined,
   ExportOutlined,
@@ -17,10 +16,10 @@ import {
 import { Menu, message } from "antd";
 import { type ReactNode, useEffect, useState } from "react";
 import { version } from "../package.json";
-import { ChatIndex } from "./components/Chat/ChatIndex.tsx";
+import { ChatSimple } from "./components/Chat/ChatSimple.tsx";
 import { ConfigLayout } from "./components/Config/ConfigLayout.tsx";
 import { ConfigMain } from "./components/Config/ConfigMain.tsx";
-import { ConfigPlugins } from "./components/Config/ConfigPlugins.tsx";
+
 import { ConfigVoice } from "./components/Config/ConfigVoice.tsx";
 import { Debug } from "./components/Debug.tsx";
 import { MemoryAction } from "./components/Memory/MemoryAction.tsx";
@@ -29,7 +28,7 @@ import { MemoryMain } from "./components/Memory/MemoryMain.tsx";
 import { env } from "./lib/env.ts";
 import { useIsMobile } from "./lib/hooks/useIsMobile.ts";
 import { useLive2dApi } from "./lib/hooks/useLive2dApi.ts";
-import { useMemory } from "./lib/hooks/useMemory.ts";
+
 import { useStates } from "./lib/hooks/useStates.ts";
 import { openLink } from "./lib/utils.ts";
 
@@ -41,9 +40,8 @@ const PAGES: Record<string, ReactNode> = {
   "config-main": <ConfigMain />,
   "config-service": <ConfigVoice />,
   "config-layout": <ConfigLayout />,
-  "config-plugins": <ConfigPlugins />,
-  "chat-text": <ChatIndex to="text" />,
-  "chat-voice": <ChatIndex to="voice" />,
+  "chat-text": <ChatSimple />,
+  "chat-voice": <ChatSimple />,
 };
 
 export default function App() {
@@ -61,8 +59,8 @@ export default function App() {
   const showTips = useLive2dApi((state) => state.showTips);
   const hideTips = useLive2dApi((state) => state.hideTips);
 
-  const selfName = useMemory((state) => state.selfName);
-  const userName = useMemory((state) => state.userName);
+  const selfName = "小助手";
+  const userName = "用户";
 
   const [messageApi, messageElement] = message.useMessage();
   const [current, setCurrent] = useState<string>(DEFAULT_PAGE);
@@ -315,11 +313,6 @@ export default function App() {
                         key: "config-layout",
                         label: "自定义设置",
                         icon: <LayoutOutlined />,
-                      },
-                      {
-                        key: "config-plugins",
-                        label: "插件设置",
-                        icon: <BorderlessTableOutlined />,
                       },
                     ],
                   },

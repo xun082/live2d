@@ -1,7 +1,7 @@
 import { FileImageOutlined, UndoOutlined } from "@ant-design/icons";
 import { Button, Form, Select, Slider, Upload } from "antd";
 import { useLive2dApi } from "../../lib/hooks/useLive2dApi.ts";
-import { useMemory } from "../../lib/hooks/useMemory.ts";
+
 import { useStates } from "../../lib/hooks/useStates.ts";
 import { toBase64 } from "../../lib/utils.ts";
 
@@ -19,7 +19,7 @@ export function ConfigLayout() {
   const live2dScale = useLive2dApi((state) => state.live2dScale);
   const setLive2dScale = useLive2dApi((state) => state.setLive2dScale);
   const messageApi = useStates((state) => state.messageApi);
-  const selfName = useMemory((state) => state.selfName);
+  const selfName = "小助手";
 
   return (
     <div className="w-full bg-white border border-blue-900 rounded-md px-5 pb-0 pt-4 overflow-auto max-h-full">

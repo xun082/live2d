@@ -1,88 +1,165 @@
-import { DeleteOutlined } from '@ant-design/icons'
-import { Button, Collapse, Popconfirm, Tag, Tooltip } from 'antd'
-import { useMemory } from '../../lib/hooks/useMemory.ts'
-import { useStates } from '../../lib/hooks/useStates.ts'
-import { useVectorApi } from '../../lib/hooks/useVectorApi.ts'
-import { getTime } from '../../lib/utils.ts'
+import { DeleteOutlined } from "@ant-design/icons";
+import { Button, Collapse, Popconfirm, Tag } from "antd";
+import { useEffect, useState } from "react";
+import { useStates } from "../../lib/hooks/useStates.ts";
+import { db, type Memory } from "../../lib/db/index.ts";
+import { getTime } from "../../lib/utils.ts";
 
 export function MemoryDiary() {
-	const longTermMemory = useMemory((state) => state.longTermMemory)
-	const selfName = useMemory((state) => state.selfName)
-	const deleteLongTermMemory = useMemory((state) => state.deleteLongTermMemory)
-	const vectorDimension = useVectorApi((state) => state.vectorDimension)
-	const messageApi = useStates((state) => state.messageApi)
+  const messageApi = useStates((state) => state.messageApi);
+  const [memories, setMemories] = useState<Memory[]>([]);
+  const [loading, setLoading] = useState(true);
 
-	return (
-		<div className='w-full bg-white max-h-full border border-blue-900 rounded-md overflow-auto transition-all'>
-			<Collapse
-				style={{ border: 'none' }}
-				size='small'
-				items={
-					longTermMemory?.length !== 0
-						? longTermMemory.map((item) => {
-								return {
-									key: item.uuid,
-									label: (
-										<div className='grid grid-cols-[1fr_auto] gap-2'>
-											<div className='text-nowrap text-ellipsis overflow-hidden'>
-												{item.summary}
-											</div>
-											<div>
-												<Tooltip
-													color='blue'
-													title={`只有经过索引的记忆才能被${selfName}回忆. 在设置->嵌入服务设置中设置相关内容后, 记忆更新时会自动索引`}
-												>
-													{item.vector &&
-													item.vector.length === vectorDimension ? (
-														<Tag color='blue' style={{ marginInline: 0 }}>
-															已索引
-														</Tag>
-													) : (
-														<Tag color='red' style={{ marginInline: 0 }}>
-															未索引
-														</Tag>
-													)}
-												</Tooltip>
-											</div>
-										</div>
-									),
-									children: (
-										<div className='w-full flex flex-col gap-2'>
-											<div>{item.summary}</div>
-											<div>
-												开始时间: <Tag>{getTime(item.startTime)}</Tag>
-											</div>
-											<div>
-												结束时间: <Tag>{getTime(item.endTime)}</Tag>
-											</div>
-											<div className='my-1'>
-												<Popconfirm
-													title={
-														<span>
-															是否确认删除本条记忆?
-															<br />
-															已更新的用户画像和自我概念不会受到影响
-														</span>
-													}
-													onConfirm={async () => {
-														await deleteLongTermMemory(item.uuid)
-														messageApi?.success('已删除本条记忆')
-													}}
-													okText='确认'
-													cancelText='取消'
-												>
-													<Button block icon={<DeleteOutlined />} danger>
-														删除本条记忆
-													</Button>
-												</Popconfirm>
-											</div>
-										</div>
-									),
-								}
-							})
-						: [{ key: 'none', label: '没有记忆', children: <div /> }]
-				}
-			/>
-		</div>
-	)
+  // 加载记忆数据
+  useEffect(() => {
+    const loadMemories = async () => {
+      try {
+        const allMemories = await db.getAllMemories();
+        setMemories(allMemories.sort((a, b) => b.timestamp - a.timestamp));
+      } catch (error) {
+        messageApi?.error("加载记忆失败");
+        console.error("加载记忆失败:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMemories();
+  }, [messageApi]);
+
+  // 删除记忆
+  const deleteMemory = async (memoryId: number) => {
+    try {
+      await db.memories.delete(memoryId);
+      setMemories((prev) => prev.filter((m) => m.id !== memoryId));
+      messageApi?.success("记忆已删除");
+    } catch (error) {
+      messageApi?.error("删除记忆失败");
+      console.error("删除记忆失败:", error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="w-full bg-white max-h-full border border-blue-900 rounded-md overflow-auto transition-all p-4">
+        <div className="flex justify-center items-center h-32">
+          <span className="text-gray-500">加载记忆中...</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full bg-white max-h-full border border-blue-900 rounded-md overflow-auto transition-all">
+      <Collapse
+        style={{ border: "none" }}
+        size="small"
+        items={
+          memories.length === 0
+            ? [
+                {
+                  key: "empty",
+                  label: (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-500">暂无记忆</span>
+                    </div>
+                  ),
+                  children: (
+                    <div className="text-center text-gray-400 py-8">
+                      <p>还没有任何记忆记录</p>
+                      <p className="text-sm">开始聊天后会自动生成记忆</p>
+                    </div>
+                  ),
+                },
+              ]
+            : memories.map((memory) => ({
+                key: memory.id?.toString() || memory.timestamp.toString(),
+                label: (
+                  <div className="flex justify-between items-center w-full">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">
+                        {memory.summary || "记忆摘要"}
+                      </span>
+                      <Tag color="blue">重要度: {memory.importance}</Tag>
+                      {memory.tags && memory.tags.length > 0 && (
+                        <div className="flex gap-1">
+                          {memory.tags.slice(0, 3).map((tag, index) => (
+                            <Tag key={index} color="green">
+                              {tag}
+                            </Tag>
+                          ))}
+                          {memory.tags.length > 3 && (
+                            <Tag color="default">+{memory.tags.length - 3}</Tag>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">
+                        {getTime(memory.timestamp)}
+                      </span>
+                      <Popconfirm
+                        title="确定要删除这条记忆吗？"
+                        onConfirm={(e) => {
+                          e?.stopPropagation();
+                          if (memory.id) {
+                            deleteMemory(memory.id);
+                          }
+                        }}
+                        okText="确定"
+                        cancelText="取消"
+                      >
+                        <Button
+                          type="text"
+                          size="small"
+                          icon={<DeleteOutlined />}
+                          danger
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </Popconfirm>
+                    </div>
+                  </div>
+                ),
+                children: (
+                  <div className="space-y-3">
+                    <div>
+                      <h4 className="font-medium text-gray-700 mb-2">摘要</h4>
+                      <p className="text-gray-600 bg-gray-50 p-3 rounded">
+                        {memory.summary || "无摘要"}
+                      </p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-medium text-gray-700 mb-2">
+                        详细内容
+                      </h4>
+                      <div className="text-gray-600 bg-gray-50 p-3 rounded whitespace-pre-wrap max-h-60 overflow-y-auto">
+                        {memory.content || "无详细内容"}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center text-sm text-gray-500">
+                      <span>创建时间: {getTime(memory.timestamp)}</span>
+                      <span>重要度: {memory.importance}/10</span>
+                    </div>
+
+                    {memory.tags && memory.tags.length > 0 && (
+                      <div>
+                        <h4 className="font-medium text-gray-700 mb-2">标签</h4>
+                        <div className="flex flex-wrap gap-1">
+                          {memory.tags.map((tag, index) => (
+                            <Tag key={index} color="blue">
+                              {tag}
+                            </Tag>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ),
+              }))
+        }
+      />
+    </div>
+  );
 }

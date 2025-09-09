@@ -1,85 +1,83 @@
-import { Button, Form, Input, Popconfirm, Space } from 'antd'
-import { useState } from 'react'
-import { useMemory } from '../../lib/hooks/useMemory.ts'
-import { useStates } from '../../lib/hooks/useStates.ts'
+import { Button, Form, Input, Space } from "antd";
+import { useState } from "react";
+import { useStates } from "../../lib/hooks/useStates.ts";
 
 export function MemoryMain() {
-	const userName = useMemory((state) => state.userName)
-	const selfName = useMemory((state) => state.selfName)
-	const setUserName = useMemory((state) => state.setUserName)
-	const setSelfName = useMemory((state) => state.setSelfName)
-	const memoryAboutSelf = useMemory((state) => state.memoryAboutSelf)
-	const memoryAboutUser = useMemory((state) => state.memoryAboutUser)
-	const messageApi = useStates((state) => state.messageApi)
+  const messageApi = useStates((state) => state.messageApi);
+  const [userName, setUserName] = useState("用户");
+  const [selfName, setSelfName] = useState("小助手");
+  const [memoryAboutSelf, setMemoryAboutSelf] = useState("");
+  const [memoryAboutUser, setMemoryAboutUser] = useState("");
 
-	const [form] = Form.useForm()
-	const [nameModified, setNameModified] = useState(false)
+  const handleSave = () => {
+    // 在简化版本中，这些设置只是本地状态
+    messageApi?.success("设置已保存（本地会话有效）");
+  };
 
-	return (
-		<div className='w-full bg-white border border-blue-900 rounded-md px-5 pb-0 pt-4 overflow-auto max-h-full'>
-			<Form
-				form={form}
-				layout='vertical'
-				initialValues={{
-					userName,
-					selfName,
-				}}
-			>
-				<Form.Item label='你和他的名字'>
-					<Space.Compact block>
-						<Form.Item noStyle name='userName'>
-							<Input
-								addonBefore='你叫'
-								placeholder='请输入'
-								onChange={() => setNameModified(true)}
-							/>
-						</Form.Item>
-						<Form.Item noStyle name='selfName'>
-							<Input
-								addonBefore='他叫'
-								placeholder='请输入'
-								onChange={() => setNameModified(true)}
-							/>
-						</Form.Item>
-						<Popconfirm
-							title={
-								<span>
-									名字是你们之间的重要记忆
-									<br />
-									强烈建议不要中途轻易修改
-									<br />
-									您确定要修改吗？
-								</span>
-							}
-							onConfirm={async () => {
-								await setUserName(form.getFieldValue('userName'))
-								await setSelfName(form.getFieldValue('selfName'))
-								setNameModified(false)
-								messageApi?.success('更新姓名成功')
-							}}
-							okText='确定'
-							cancelText='取消'
-						>
-							<Button
-								type={nameModified ? 'primary' : 'default'}
-								autoInsertSpace={false}
-							>
-								保存
-							</Button>
-						</Popconfirm>
-					</Space.Compact>
-				</Form.Item>
-				<Form.Item label={`${selfName}关于自己的记忆`}>
-					<div className='w-full border rounded-md p-2 border-[#d9d9d9] hover:border-[#5794f7] transition-all'>
-						{memoryAboutSelf || '没有记忆'}
-					</div>
-				</Form.Item>
-				<Form.Item label={`${selfName}关于你的记忆`}>
-					<div className='w-full border rounded-md p-2 border-[#d9d9d9] hover:border-[#5794f7] transition-all'>
-						{memoryAboutUser || '没有记忆'}
-					</div>
-				</Form.Item>
-			</Form>
-		</div>
-	)
+  return (
+    <div className="w-full bg-white border border-blue-900 rounded-md px-5 pb-0 pt-4 overflow-auto max-h-full">
+      <Form layout="vertical" onFinish={handleSave}>
+        <Form.Item label="用户名称">
+          <Input
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
+            placeholder="请输入用户名称"
+          />
+        </Form.Item>
+
+        <Form.Item label="助手名称">
+          <Input
+            value={selfName}
+            onChange={(e) => setSelfName(e.target.value)}
+            placeholder="请输入助手名称"
+          />
+        </Form.Item>
+
+        <Form.Item label="关于助手的记忆">
+          <Input.TextArea
+            value={memoryAboutSelf}
+            onChange={(e) => setMemoryAboutSelf(e.target.value)}
+            placeholder="描述助手的特点、性格等..."
+            rows={4}
+          />
+        </Form.Item>
+
+        <Form.Item label="关于用户的记忆">
+          <Input.TextArea
+            value={memoryAboutUser}
+            onChange={(e) => setMemoryAboutUser(e.target.value)}
+            placeholder="记录用户的偏好、特点等..."
+            rows={4}
+          />
+        </Form.Item>
+
+        <Form.Item>
+          <Space>
+            <Button type="primary" htmlType="submit">
+              保存设置
+            </Button>
+            <Button
+              onClick={() => {
+                setUserName("用户");
+                setSelfName("小助手");
+                setMemoryAboutSelf("");
+                setMemoryAboutUser("");
+                messageApi?.success("已重置为默认值");
+              }}
+            >
+              重置
+            </Button>
+          </Space>
+        </Form.Item>
+      </Form>
+
+      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+        <h4 className="font-medium mb-2">说明</h4>
+        <p className="text-sm text-gray-600">
+          在简化版本中，这些设置仅在当前会话中有效。
+          如需持久化存储，可以通过记忆管理功能导出和导入数据。
+        </p>
+      </div>
+    </div>
+  );
 }

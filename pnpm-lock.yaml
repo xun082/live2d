@@ -32,6 +32,9 @@ importers:
       antd:
         specifier: ^5.24.3
         version: 5.27.3(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      dexie:
+        specifier: ^4.2.0
+        version: 4.2.0
       emoji-regex:
         specifier: ^10.4.0
         version: 10.5.0
@@ -1674,6 +1677,9 @@ packages:
   detect-newline@3.1.0:
     resolution: {integrity: sha512-TLz+x/vEXm/Y7P7wn1EJFNLxYpUD4TgMosxY6fAVJUnJMbupHBOncxyWUG9OpTaH9EBD7uFI5LfEgmMOc54DsA==}
     engines: {node: '>=8'}
+
+  dexie@4.2.0:
+    resolution: {integrity: sha512-OSeyyWOUetDy9oFWeddJgi83OnRA3hSFh3RrbltmPgqHszE9f24eUCVLI4mPg0ifsWk0lQTdnS+jyGNrPMvhDA==}
 
   dot-prop@5.3.0:
     resolution: {integrity: sha512-QM8q3zDe58hqUqjraQOmzZ1LIH9SWQJTlEKCH4kJ2oQvLZk7RbQXvtDM2XEq3fwkV9CCvvH4LA0AV+ogFsBM2Q==}
@@ -5014,6 +5020,8 @@ snapshots:
   detect-libc@2.0.4: {}
 
   detect-newline@3.1.0: {}
+
+  dexie@4.2.0: {}
 
   dot-prop@5.3.0:
     dependencies:
