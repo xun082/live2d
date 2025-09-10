@@ -18,7 +18,9 @@
         "resizable": true,
         "fullscreen": false,
         "minWidth": 800,
-        "minHeight": 700
+        "minHeight": 600,
+        "maxWidth": 1920,
+        "maxHeight": 1080
       }
     ],
     "security": {
@@ -42,6 +44,24 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "publisher": "leafyee.xyz",
+    "copyright": "Copyright © 2024 leafyee.xyz",
+    "category": "Productivity",
+    "shortDescription": "Digital Life Assistant",
+    "longDescription": "A digital life assistant with Live2D character support",
+    "macOS": {
+      "frameworks": [],
+      "minimumSystemVersion": "10.13",
+      "exceptionDomain": "",
+      "signingIdentity": null,
+      "providerShortName": null,
+      "entitlements": null
+    },
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": ""
+    }
   }
 }

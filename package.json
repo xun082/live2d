@@ -21,7 +21,12 @@
     "b:web": "pnpm run build:web",
     "dev:tauri": "pnpm run switch:tauri && pnpm run tauri dev",
     "build:tauri": "pnpm run switch:tauri && pnpm run tauri build",
-    "build:win": "pnpm run switch:tauri && pnpm run tauri build --runner cargo-xwin --target x86_64-pc-windows-msvc",
+    "build:win": "pnpm run switch:tauri && pnpm run tauri build --target x86_64-pc-windows-msvc",
+    "build:win-arm": "pnpm run switch:tauri && pnpm run tauri build --target aarch64-pc-windows-msvc",
+    "build:mac": "pnpm run switch:tauri && pnpm run tauri build --target x86_64-apple-darwin",
+    "build:mac-arm": "pnpm run switch:tauri && pnpm run tauri build --target aarch64-apple-darwin",
+    "build:linux": "pnpm run switch:tauri && pnpm run tauri build --target x86_64-unknown-linux-gnu",
+    "build:all": "pnpm run build:mac && pnpm run build:mac-arm && pnpm run build:win && pnpm run build:win-arm",
     "dev:web": "pnpm run switch:web && vite",
     "build:web": "pnpm run switch:web && vite build --outDir ./dist-web",
     "preview:web": "vite preview --outDir ./dist-web"
