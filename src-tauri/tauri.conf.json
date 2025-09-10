@@ -6,8 +6,8 @@
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
-    "beforeDevCommand": "bun dev",
-    "beforeBuildCommand": "bun run build"
+    "beforeDevCommand": "pnpm dev",
+    "beforeBuildCommand": "pnpm run build"
   },
   "app": {
     "windows": [
@@ -23,6 +23,22 @@
     ],
     "security": {
       "csp": null
+    }
+  },
+  "plugins": {
+    "store": {
+      "defaultStore": "data.json"
+    },
+    "dialog": {
+      "all": true,
+      "ask": true,
+      "confirm": true,
+      "message": true,
+      "open": true,
+      "save": true
+    },
+    "shell": {
+      "open": true
     }
   },
   "bundle": {

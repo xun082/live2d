@@ -1,155 +1,155 @@
-import emojiReg from "emoji-regex";
-import { useEffect, useRef, useState } from "react";
-import { flushSync } from "react-dom";
-import { useAIMotionProcessor } from "../../hooks/useAIMotionProcessor.ts";
-import { db } from "../../lib/db/index.ts";
-import { sleep, uuid } from "../../lib/utils.ts";
-import { useChatApi } from "../../stores/useChatApi.ts";
-import { useListenApi } from "../../stores/useListenApi.ts";
-import { useLive2dApi } from "../../stores/useLive2dApi.ts";
-import { useSpeakApi } from "../../stores/useSpeakApi.ts";
-import { useStates } from "../../stores/useStates.ts";
+import emojiReg from 'emoji-regex'
+import { useEffect, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
+import { useAIMotionProcessor } from '../../hooks/useAIMotionProcessor.ts'
+import { db } from '../../lib/db/index.ts'
+import { sleep, uuid } from '../../lib/utils.ts'
+import { useChatApi } from '../../stores/useChatApi.ts'
+import { useListenApi } from '../../stores/useListenApi.ts'
+import { useLive2dApi } from '../../stores/useLive2dApi.ts'
+import { useSpeakApi } from '../../stores/useSpeakApi.ts'
+import { useStates } from '../../stores/useStates.ts'
 
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { MessageInput } from "@/components/ui/message-input";
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
+import { MessageInput } from '@/components/ui/message-input'
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { BarChart3, Loader2, RotateCcw, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from '@/components/ui/popover'
+import { BarChart3, Loader2, RotateCcw, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface SimpleMessage {
-  role: "user" | "assistant" | "system";
-  content: string;
-  timestamp: number;
-  uuid: string;
+	role: 'user' | 'assistant' | 'system'
+	content: string
+	timestamp: number
+	uuid: string
 }
 
 export default function ChatPage() {
-  const disabled = useStates((state) => state.disabled);
-  const setDisabled = useStates((state) => state.setDisabled);
+	const disabled = useStates((state) => state.disabled)
+	const setDisabled = useStates((state) => state.setDisabled)
 
-  const chat = useChatApi((state) => state.chat);
-  const usedToken = useChatApi((state) => state.usedToken);
-  const setUsedToken = useChatApi((state) => state.setUsedToken);
-  const openaiModelName = useChatApi((state) => state.openaiModelName);
-  const processAIResponse = useChatApi((state) => state.processAIResponse);
+	const chat = useChatApi((state) => state.chat)
+	const usedToken = useChatApi((state) => state.usedToken)
+	const setUsedToken = useChatApi((state) => state.setUsedToken)
+	const openaiModelName = useChatApi((state) => state.openaiModelName)
+	const processAIResponse = useChatApi((state) => state.processAIResponse)
 
-  // Initialize AI motion processor
-  useAIMotionProcessor();
+	// Initialize AI motion processor
+	useAIMotionProcessor()
 
-  const speak = useSpeakApi((state) => state.speak);
-  const listen = useListenApi((state) => state.listen);
+	const speak = useSpeakApi((state) => state.speak)
+	const listen = useListenApi((state) => state.listen)
 
-  const showTips = useLive2dApi((state) => state.showTips);
-  const hideTips = useLive2dApi((state) => state.hideTips);
-  const setTips = useLive2dApi((state) => state.setTips);
+	const showTips = useLive2dApi((state) => state.showTips)
+	const hideTips = useLive2dApi((state) => state.hideTips)
+	const setTips = useLive2dApi((state) => state.setTips)
 
-  const [messages, setMessages] = useState<SimpleMessage[]>([]);
-  const [currentSessionId, setCurrentSessionId] = useState<number | null>(null);
-  const [recognition, setRecognition] = useState<any | null>(null);
-  const [inputValue, setInputValue] = useState<string>("");
+	const [messages, setMessages] = useState<SimpleMessage[]>([])
+	const [currentSessionId, setCurrentSessionId] = useState<number | null>(null)
+	const [recognition, setRecognition] = useState<any | null>(null)
+	const [inputValue, setInputValue] = useState<string>('')
 
-  const senderRef = useRef<HTMLDivElement>(null);
-  const messagesRef = useRef<HTMLDivElement>(null);
+	const senderRef = useRef<HTMLDivElement>(null)
+	const messagesRef = useRef<HTMLDivElement>(null)
 
-  // 初始化会话
-  useEffect(() => {
-    const initSession = async () => {
-      try {
-        let session = await db.getActiveSession();
+	// 初始化会话
+	useEffect(() => {
+		const initSession = async () => {
+			try {
+				let session = await db.getActiveSession()
 
-        if (!session) {
-          const sessionId = await db.createSession("默认对话");
-          session = {
-            id: sessionId,
-            name: "默认对话",
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
-            isActive: true,
-          };
-        }
+				if (!session) {
+					const sessionId = await db.createSession('默认对话')
+					session = {
+						id: sessionId,
+						name: '默认对话',
+						createdAt: Date.now(),
+						updatedAt: Date.now(),
+						isActive: true,
+					}
+				}
 
-        if (session?.id) {
-          setCurrentSessionId(session.id);
+				if (session?.id) {
+					setCurrentSessionId(session.id)
 
-          // 加载会话消息
-          const dbMessages = await db.getSessionMessages(session.id);
-          const simpleMessages: SimpleMessage[] = dbMessages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-            timestamp: msg.timestamp,
-            uuid: msg.uuid,
-          }));
+					// 加载会话消息
+					const dbMessages = await db.getSessionMessages(session.id)
+					const simpleMessages: SimpleMessage[] = dbMessages.map((msg) => ({
+						role: msg.role,
+						content: msg.content,
+						timestamp: msg.timestamp,
+						uuid: msg.uuid,
+					}))
 
-          setMessages(simpleMessages);
-        }
-      } catch (error) {
-        console.error("初始化会话失败:", error);
-        toast.error("初始化会话失败");
-      }
-    };
+					setMessages(simpleMessages)
+				}
+			} catch (error) {
+				console.error('初始化会话失败:', error)
+				toast.error('初始化会话失败')
+			}
+		}
 
-    initSession();
-  }, []);
+		initSession()
+	}, [])
 
-  // 自动滚动到底部
-  useEffect(() => {
-    if (messagesRef.current) {
-      messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
-    }
-  }, [messages]);
+	// 自动滚动到底部
+	useEffect(() => {
+		if (messagesRef.current) {
+			messagesRef.current.scrollTop = messagesRef.current.scrollHeight
+		}
+	}, [messages])
 
-  // 聊天功能
-  const onChat = async (text: string) => {
-    if (!currentSessionId) {
-      toast.error("会话未初始化");
-      return;
-    }
+	// 聊天功能
+	const onChat = async (text: string) => {
+		if (!currentSessionId) {
+			toast.error('会话未初始化')
+			return
+		}
 
-    const time = Date.now();
-    const userMessage: SimpleMessage = {
-      role: "user",
-      content: text,
-      timestamp: time,
-      uuid: uuid(),
-    };
+		const time = Date.now()
+		const userMessage: SimpleMessage = {
+			role: 'user',
+			content: text,
+			timestamp: time,
+			uuid: uuid(),
+		}
 
-    try {
-      // 添加用户消息
-      const newMessages = [...messages, userMessage];
-      setMessages(newMessages);
+		try {
+			// 添加用户消息
+			const newMessages = [...messages, userMessage]
+			setMessages(newMessages)
 
-      // 保存到数据库
-      await db.addMessage({
-        role: userMessage.role,
-        content: userMessage.content,
-        timestamp: userMessage.timestamp,
-        uuid: userMessage.uuid,
-        sessionId: currentSessionId,
-      });
+			// 保存到数据库
+			await db.addMessage({
+				role: userMessage.role,
+				content: userMessage.content,
+				timestamp: userMessage.timestamp,
+				uuid: userMessage.uuid,
+				sessionId: currentSessionId,
+			})
 
-      setTips("......");
-      showTips();
+			setTips('......')
+			showTips()
 
-      // 获取相关记忆
-      const relevantMemories = await db.searchMemories(text, 3);
+			// 获取相关记忆
+			const relevantMemories = await db.searchMemories(text, 3)
 
-      // 构建系统提示
-      let systemPrompt = `你是一个友善的AI助手。你可以通过在回复中包含特殊的动作指令来控制Live2D模型的动作。
+			// 构建系统提示
+			let systemPrompt = `你是一个友善的AI助手。你可以通过在回复中包含特殊的动作指令来控制Live2D模型的动作。
 
 可用的动作指令：
 - [MOTION:Idle] - 空闲/休息动作
@@ -177,399 +177,399 @@ export default function ChatPage() {
 - 中等回复（3-5句）：开头+中间+结尾各一个动作  
 - 长回复（6句以上）：开头+多个中间转折点+结尾，保持动作丰富
 
-请在回复中自然地使用这些动作指令，让对话更加生动有趣。动作要与内容情感匹配，在关键时刻增强表达效果。`;
-      if (relevantMemories.length > 0) {
-        systemPrompt +=
-          "\n\n相关记忆：\n" +
-          relevantMemories.map((m) => `- ${m.summary}`).join("\n");
-      }
+请在回复中自然地使用这些动作指令，让对话更加生动有趣。动作要与内容情感匹配，在关键时刻增强表达效果。`
+			if (relevantMemories.length > 0) {
+				systemPrompt +=
+					'\n\n相关记忆：\n' +
+					relevantMemories.map((m) => `- ${m.summary}`).join('\n')
+			}
 
-      // 构建消息数组
-      const chatMessages = [
-        { role: "system" as const, content: systemPrompt },
-        ...newMessages.slice(-10).map((msg) => ({
-          // 只取最近10条消息
-          role: msg.role,
-          content: msg.content,
-        })),
-      ];
+			// 构建消息数组
+			const chatMessages = [
+				{ role: 'system' as const, content: systemPrompt },
+				...newMessages.slice(-10).map((msg) => ({
+					// 只取最近10条消息
+					role: msg.role,
+					content: msg.content,
+				})),
+			]
 
-      // 调用聊天API
-      const response = await chat.chat.completions.create({
-        model: openaiModelName,
-        messages: chatMessages,
-      });
+			// 调用聊天API
+			const response = await chat.chat.completions.create({
+				model: openaiModelName,
+				messages: chatMessages,
+			})
 
-      const assistantContent =
-        response.choices[0]?.message?.content || "抱歉，我无法回应。";
-      const tokens = response.usage?.total_tokens || 0;
+			const assistantContent =
+				response.choices[0]?.message?.content || '抱歉，我无法回应。'
+			const tokens = response.usage?.total_tokens || 0
 
-      await setUsedToken(tokens);
+			await setUsedToken(tokens)
 
-      // Process motion commands first (before cleaning for display)
-      processAIResponse(assistantContent);
+			// Process motion commands first (before cleaning for display)
+			processAIResponse(assistantContent)
 
-      // Remove motion commands from content for display and speech
-      const cleanContent = assistantContent
-        .replace(/\[MOTION:\w+(?::\d+)?\]/g, "")
-        .trim();
+			// Remove motion commands from content for display and speech
+			const cleanContent = assistantContent
+				.replace(/\[MOTION:\w+(?::\d+)?\]/g, '')
+				.trim()
 
-      // 语音合成
-      const emoji = emojiReg();
-      const tts =
-        typeof speak === "function"
-          ? speak(cleanContent.replace(emoji, "")).then(({ audio }) =>
-              db.addAudioCache({
-                timestamp: time,
-                audio: audio.buffer
-                  ? (audio.buffer as unknown as ArrayBuffer)
-                  : (audio as unknown as ArrayBuffer),
-              })
-            )
-          : Promise.resolve();
+			// 语音合成
+			const emoji = emojiReg()
+			const tts =
+				typeof speak === 'function'
+					? speak(cleanContent.replace(emoji, '')).then(({ audio }) =>
+							db.addAudioCache({
+								timestamp: time,
+								audio: audio.buffer
+									? (audio.buffer as unknown as ArrayBuffer)
+									: (audio as unknown as ArrayBuffer),
+							}),
+						)
+					: Promise.resolve()
 
-      flushSync(() =>
-        setDisabled(
-          <p className="flex justify-center items-center gap-[0.3rem]">
-            回应中 <Loader2 className="animate-spin" />
-          </p>
-        )
-      );
+			flushSync(() =>
+				setDisabled(
+					<p className='flex justify-center items-center gap-[0.3rem]'>
+						回应中 <Loader2 className='animate-spin' />
+					</p>,
+				),
+			)
 
-      // 逐字显示效果
-      const reg = /。|？|！|,|，|;|；|~|～|!|\?|\. |…|\n|\r|\r\n|:|：|……/;
-      let current = "";
-      let steps = "";
+			// 逐字显示效果
+			const reg = /。|？|！|,|，|;|；|~|～|!|\?|\. |…|\n|\r|\r\n|:|：|……/
+			let current = ''
+			let steps = ''
 
-      for (const w of cleanContent) {
-        current += w;
+			for (const w of cleanContent) {
+				current += w
 
-        const assistantMessage: SimpleMessage = {
-          role: "assistant",
-          content: current,
-          timestamp: time,
-          uuid: uuid(),
-        };
+				const assistantMessage: SimpleMessage = {
+					role: 'assistant',
+					content: current,
+					timestamp: time,
+					uuid: uuid(),
+				}
 
-        setMessages([...newMessages, assistantMessage]);
-        await sleep(30);
+				setMessages([...newMessages, assistantMessage])
+				await sleep(30)
 
-        if (w.match(reg)) {
-          setTips(steps + w);
-          steps = "";
-          await sleep(1000);
-        } else {
-          steps += w;
-          setTips(steps);
-        }
-      }
+				if (w.match(reg)) {
+					setTips(steps + w)
+					steps = ''
+					await sleep(1000)
+				} else {
+					steps += w
+					setTips(steps)
+				}
+			}
 
-      hideTips(10);
+			hideTips(10)
 
-      // 保存最终的助手消息
-      const finalAssistantMessage: SimpleMessage = {
-        role: "assistant",
-        content: cleanContent,
-        timestamp: time,
-        uuid: uuid(),
-      };
+			// 保存最终的助手消息
+			const finalAssistantMessage: SimpleMessage = {
+				role: 'assistant',
+				content: cleanContent,
+				timestamp: time,
+				uuid: uuid(),
+			}
 
-      await db.addMessage({
-        role: finalAssistantMessage.role,
-        content: finalAssistantMessage.content,
-        timestamp: finalAssistantMessage.timestamp,
-        uuid: finalAssistantMessage.uuid,
-        sessionId: currentSessionId,
-      });
+			await db.addMessage({
+				role: finalAssistantMessage.role,
+				content: finalAssistantMessage.content,
+				timestamp: finalAssistantMessage.timestamp,
+				uuid: finalAssistantMessage.uuid,
+				sessionId: currentSessionId,
+			})
 
-      setMessages([...newMessages, finalAssistantMessage]);
+			setMessages([...newMessages, finalAssistantMessage])
 
-      flushSync(() =>
-        setDisabled(
-          <p className="flex justify-center items-center gap-[0.3rem]">
-            等待语音生成结束 <Loader2 className="animate-spin" />
-          </p>
-        )
-      );
+			flushSync(() =>
+				setDisabled(
+					<p className='flex justify-center items-center gap-[0.3rem]'>
+						等待语音生成结束 <Loader2 className='animate-spin' />
+					</p>,
+				),
+			)
 
-      await tts;
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "未知错误");
-      console.error("聊天失败:", error);
-    }
-  };
+			await tts
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : '未知错误')
+			console.error('聊天失败:', error)
+		}
+	}
 
-  // 更新记忆
-  const updateMemory = async () => {
-    if (messages.length === 0) return;
+	// 更新记忆
+	const updateMemory = async () => {
+		if (messages.length === 0) return
 
-    try {
-      flushSync(() =>
-        setDisabled(
-          <p className="flex justify-center items-center gap-[0.3rem]">
-            更新记忆中 <Loader2 className="animate-spin" />
-          </p>
-        )
-      );
+		try {
+			flushSync(() =>
+				setDisabled(
+					<p className='flex justify-center items-center gap-[0.3rem]'>
+						更新记忆中 <Loader2 className='animate-spin' />
+					</p>,
+				),
+			)
 
-      // 生成对话摘要
-      const conversation = messages
-        .map((msg: SimpleMessage) => `${msg.role}: ${msg.content}`)
-        .join("\n");
+			// 生成对话摘要
+			const conversation = messages
+				.map((msg: SimpleMessage) => `${msg.role}: ${msg.content}`)
+				.join('\n')
 
-      const summaryPrompt = `请为以下对话生成一个简洁的摘要，突出重要信息：\n\n${conversation}`;
+			const summaryPrompt = `请为以下对话生成一个简洁的摘要，突出重要信息：\n\n${conversation}`
 
-      const summaryResponse = await chat.chat.completions.create({
-        model: openaiModelName,
-        messages: [
-          {
-            role: "system",
-            content: "你是记忆助手，负责整理和总结对话内容。",
-          },
-          { role: "user", content: summaryPrompt },
-        ],
-      });
+			const summaryResponse = await chat.chat.completions.create({
+				model: openaiModelName,
+				messages: [
+					{
+						role: 'system',
+						content: '你是记忆助手，负责整理和总结对话内容。',
+					},
+					{ role: 'user', content: summaryPrompt },
+				],
+			})
 
-      const summary =
-        summaryResponse.choices[0]?.message?.content || conversation;
+			const summary =
+				summaryResponse.choices[0]?.message?.content || conversation
 
-      // 保存记忆到IndexedDB
-      await db.addMemory({
-        content: conversation,
-        summary: summary,
-        timestamp: Date.now(),
-        importance: Math.min(messages.length, 10),
-        tags: [],
-      });
+			// 保存记忆到IndexedDB
+			await db.addMemory({
+				content: conversation,
+				summary: summary,
+				timestamp: Date.now(),
+				importance: Math.min(messages.length, 10),
+				tags: [],
+			})
 
-      // 清空当前对话
-      setMessages([]);
-      if (currentSessionId) {
-        await db.clearSessionMessages(currentSessionId);
-      }
+			// 清空当前对话
+			setMessages([])
+			if (currentSessionId) {
+				await db.clearSessionMessages(currentSessionId)
+			}
 
-      toast.success("记忆更新成功");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "更新记忆失败");
-      console.error("更新记忆失败:", error);
-    }
-  };
+			toast.success('记忆更新成功')
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : '更新记忆失败')
+			console.error('更新记忆失败:', error)
+		}
+	}
 
-  // 清除对话
-  const clearChat = async () => {
-    try {
-      flushSync(() =>
-        setDisabled(
-          <p className="flex justify-center items-center gap-[0.3rem]">
-            清除对话中 <Loader2 className="animate-spin" />
-          </p>
-        )
-      );
+	// 清除对话
+	const clearChat = async () => {
+		try {
+			flushSync(() =>
+				setDisabled(
+					<p className='flex justify-center items-center gap-[0.3rem]'>
+						清除对话中 <Loader2 className='animate-spin' />
+					</p>,
+				),
+			)
 
-      setMessages([]);
-      await setUsedToken(undefined);
+			setMessages([])
+			await setUsedToken(undefined)
 
-      if (currentSessionId) {
-        await db.clearSessionMessages(currentSessionId);
-      }
+			if (currentSessionId) {
+				await db.clearSessionMessages(currentSessionId)
+			}
 
-      toast.success("对话已清除");
-      setInputValue("");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "清除对话失败");
-    }
-  };
+			toast.success('对话已清除')
+			setInputValue('')
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : '清除对话失败')
+		}
+	}
 
-  const [memoMaxHeight, setMemoMaxHeight] = useState<string>("0px");
-  useEffect(() => {
-    const initSenderHeight = senderRef.current?.clientHeight;
-    setMemoMaxHeight(`calc(100dvh - ${initSenderHeight}px - 11rem)`);
-  }, []);
+	const [memoMaxHeight, setMemoMaxHeight] = useState<string>('0px')
+	useEffect(() => {
+		const initSenderHeight = senderRef.current?.clientHeight
+		setMemoMaxHeight(`calc(100dvh - ${initSenderHeight}px - 11rem)`)
+	}, [])
 
-  return (
-    <div className="w-full max-h-full relative overflow-hidden p-4 bg-white rounded-md border border-blue-900 gap-4 flex flex-col">
-      <div
-        className="w-full overflow-auto border rounded-lg p-3 border-[#d9d9d9] hover:border-[#5794f7] transition-none"
-        style={{ maxHeight: memoMaxHeight }}
-        ref={messagesRef}
-      >
-        {messages.length ? (
-          <div className="space-y-4">
-            {messages.map((msg: SimpleMessage, index: number) => (
-              <div
-                key={`${msg.uuid}-${index}`}
-                className={`flex ${
-                  msg.role === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
-                <div
-                  className={`max-w-[70%] p-3 rounded-lg ${
-                    msg.role === "user"
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  <div className="whitespace-pre-wrap">{msg.content}</div>
-                  <div className="text-xs opacity-70 mt-1">
-                    {new Date(msg.timestamp).toLocaleTimeString()}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <span className="text-gray-400">无对话内容</span>
-        )}
-      </div>
+	return (
+		<div className='w-full max-h-full relative overflow-hidden p-4 bg-white rounded-md border border-blue-900 gap-4 flex flex-col'>
+			<div
+				className='w-full overflow-auto border rounded-lg p-3 border-[#d9d9d9] hover:border-[#5794f7] transition-none'
+				style={{ maxHeight: memoMaxHeight }}
+				ref={messagesRef}
+			>
+				{messages.length ? (
+					<div className='space-y-4'>
+						{messages.map((msg: SimpleMessage, index: number) => (
+							<div
+								key={`${msg.uuid}-${index}`}
+								className={`flex ${
+									msg.role === 'user' ? 'justify-end' : 'justify-start'
+								}`}
+							>
+								<div
+									className={`max-w-[70%] p-3 rounded-lg ${
+										msg.role === 'user'
+											? 'bg-blue-500 text-white'
+											: 'bg-gray-100 text-gray-800'
+									}`}
+								>
+									<div className='whitespace-pre-wrap'>{msg.content}</div>
+									<div className='text-xs opacity-70 mt-1'>
+										{new Date(msg.timestamp).toLocaleTimeString()}
+									</div>
+								</div>
+							</div>
+						))}
+					</div>
+				) : (
+					<span className='text-gray-400'>无对话内容</span>
+				)}
+			</div>
 
-      <MessageInput
-        ref={senderRef}
-        header={
-          <div className="w-full flex justify-start items-center gap-2 p-2 pb-0">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={disabled !== false || messages.length === 0}
-                  className="h-8"
-                >
-                  <Trash2 size={14} className="mr-1" />
-                  <span className="text-xs">更新记忆</span>
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>确认更新记忆</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    您确定要立即更新记忆吗？这将把当前对话保存到记忆中并清空当前对话。
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>取消</AlertDialogCancel>
-                  <AlertDialogAction onClick={updateMemory}>
-                    确定
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+			<MessageInput
+				ref={senderRef}
+				header={
+					<div className='w-full flex justify-start items-center gap-2 p-2 pb-0'>
+						<AlertDialog>
+							<AlertDialogTrigger asChild>
+								<Button
+									variant='outline'
+									size='sm'
+									disabled={disabled !== false || messages.length === 0}
+									className='h-8'
+								>
+									<Trash2 size={14} className='mr-1' />
+									<span className='text-xs'>更新记忆</span>
+								</Button>
+							</AlertDialogTrigger>
+							<AlertDialogContent>
+								<AlertDialogHeader>
+									<AlertDialogTitle>确认更新记忆</AlertDialogTitle>
+									<AlertDialogDescription>
+										您确定要立即更新记忆吗？这将把当前对话保存到记忆中并清空当前对话。
+									</AlertDialogDescription>
+								</AlertDialogHeader>
+								<AlertDialogFooter>
+									<AlertDialogCancel>取消</AlertDialogCancel>
+									<AlertDialogAction onClick={updateMemory}>
+										确定
+									</AlertDialogAction>
+								</AlertDialogFooter>
+							</AlertDialogContent>
+						</AlertDialog>
 
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={disabled !== false || messages.length === 0}
-                  className="h-8"
-                >
-                  <RotateCcw size={14} className="mr-1" />
-                  <span className="text-xs">清除当前对话</span>
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>确认清除对话</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    您确定要清除当前对话吗？此操作不可撤销。
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>取消</AlertDialogCancel>
-                  <AlertDialogAction onClick={clearChat}>
-                    确定
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+						<AlertDialog>
+							<AlertDialogTrigger asChild>
+								<Button
+									variant='outline'
+									size='sm'
+									disabled={disabled !== false || messages.length === 0}
+									className='h-8'
+								>
+									<RotateCcw size={14} className='mr-1' />
+									<span className='text-xs'>清除当前对话</span>
+								</Button>
+							</AlertDialogTrigger>
+							<AlertDialogContent>
+								<AlertDialogHeader>
+									<AlertDialogTitle>确认清除对话</AlertDialogTitle>
+									<AlertDialogDescription>
+										您确定要清除当前对话吗？此操作不可撤销。
+									</AlertDialogDescription>
+								</AlertDialogHeader>
+								<AlertDialogFooter>
+									<AlertDialogCancel>取消</AlertDialogCancel>
+									<AlertDialogAction onClick={clearChat}>
+										确定
+									</AlertDialogAction>
+								</AlertDialogFooter>
+							</AlertDialogContent>
+						</AlertDialog>
 
-            {typeof usedToken === "number" && usedToken > 0 && (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={disabled !== false}
-                    className="h-8 w-8 p-0"
-                  >
-                    <BarChart3 size={14} />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent>
-                  <p>上次词元用量: {usedToken}</p>
-                </PopoverContent>
-              </Popover>
-            )}
-          </div>
-        }
-        onSubmit={async () => {
-          const text = inputValue.trim();
-          if (!text) {
-            toast.warning("请输入内容");
-            return;
-          }
+						{typeof usedToken === 'number' && usedToken > 0 && (
+							<Popover>
+								<PopoverTrigger asChild>
+									<Button
+										variant='outline'
+										size='sm'
+										disabled={disabled !== false}
+										className='h-8 w-8 p-0'
+									>
+										<BarChart3 size={14} />
+									</Button>
+								</PopoverTrigger>
+								<PopoverContent>
+									<p>上次词元用量: {usedToken}</p>
+								</PopoverContent>
+							</Popover>
+						)}
+					</div>
+				}
+				onSubmit={async () => {
+					const text = inputValue.trim()
+					if (!text) {
+						toast.warning('请输入内容')
+						return
+					}
 
-          flushSync(() =>
-            setDisabled(
-              <p className="flex justify-center items-center gap-[0.3rem]">
-                对话中 <Loader2 className="animate-spin" />
-              </p>
-            )
-          );
+					flushSync(() =>
+						setDisabled(
+							<p className='flex justify-center items-center gap-[0.3rem]'>
+								对话中 <Loader2 className='animate-spin' />
+							</p>,
+						),
+					)
 
-          setInputValue("");
-          await onChat(text).catch(() => setInputValue(text));
-          flushSync(() => setDisabled(false));
-        }}
-        disabled={disabled !== false}
-        loading={disabled !== false}
-        value={inputValue}
-        onChange={(value: string) => {
-          setInputValue(value);
-          setTimeout(() => {
-            setMemoMaxHeight(
-              `calc(100dvh - ${senderRef.current?.clientHeight}px - 11.5rem)`
-            );
-          }, 10);
-        }}
-        placeholder="按 Shift + Enter 发送消息"
-        allowSpeech={
-          listen
-            ? {
-                recording: recognition !== null,
-                onRecordingChange: async (recording: boolean) => {
-                  if (recording) {
-                    toast.info("再次点击按钮结束说话");
-                    const api = listen();
-                    setRecognition(api);
-                    api.start();
-                    return;
-                  }
-                  try {
-                    if (!recognition) {
-                      throw new Error("语音识别未初始化");
-                    }
-                    recognition.stop();
-                    const text = await recognition.result;
-                    if (!text) {
-                      throw new Error("未识别到任何文字");
-                    }
-                    setInputValue(text);
-                  } catch (e) {
-                    toast.warning(
-                      e instanceof Error
-                        ? e.message
-                        : typeof e === "string"
-                        ? e
-                        : "未知错误"
-                    );
-                  } finally {
-                    setRecognition(null);
-                  }
-                },
-              }
-            : undefined
-        }
-      />
-    </div>
-  );
+					setInputValue('')
+					await onChat(text).catch(() => setInputValue(text))
+					flushSync(() => setDisabled(false))
+				}}
+				disabled={disabled !== false}
+				loading={disabled !== false}
+				value={inputValue}
+				onChange={(value: string) => {
+					setInputValue(value)
+					setTimeout(() => {
+						setMemoMaxHeight(
+							`calc(100dvh - ${senderRef.current?.clientHeight}px - 11.5rem)`,
+						)
+					}, 10)
+				}}
+				placeholder='按 Shift + Enter 发送消息'
+				allowSpeech={
+					listen
+						? {
+								recording: recognition !== null,
+								onRecordingChange: async (recording: boolean) => {
+									if (recording) {
+										toast.info('再次点击按钮结束说话')
+										const api = listen()
+										setRecognition(api)
+										api.start()
+										return
+									}
+									try {
+										if (!recognition) {
+											throw new Error('语音识别未初始化')
+										}
+										recognition.stop()
+										const text = await recognition.result
+										if (!text) {
+											throw new Error('未识别到任何文字')
+										}
+										setInputValue(text)
+									} catch (e) {
+										toast.warning(
+											e instanceof Error
+												? e.message
+												: typeof e === 'string'
+													? e
+													: '未知错误',
+										)
+									} finally {
+										setRecognition(null)
+									}
+								},
+							}
+						: undefined
+				}
+			/>
+		</div>
+	)
 }

@@ -150,11 +150,11 @@
 git clone https://github.com/LeafYeeXYZ/DigitalLife.git
 cd DigitalLife
 # 安装依赖
-bun install
+pnpm install
 # 运行
-bun dev:tauri
+pnpm dev:tauri
 # 构建
-bun build:tauri
+pnpm build:tauri
 ```
 
 ### 4.2 Web 端
@@ -166,11 +166,11 @@ bun build:tauri
 git clone https://github.com/LeafYeeXYZ/DigitalLife.git
 cd DigitalLife
 # 安装依赖
-bun install
+pnpm install
 # 运行
-bun dev:web
+pnpm dev:web
 # 构建
-bun build:web
+pnpm build:web
 ```
 
 ### 4.3 环境变量
