@@ -42,7 +42,7 @@ export function DesktopLayout() {
 
         {/* 右侧控制面板 */}
         <Panel defaultSize={40} minSize={20} maxSize={70} className="bg-white">
-          <div className="w-full h-full overflow-hidden grid grid-rows-[1fr_3.2rem]">
+          <div className="w-full h-full overflow-hidden grid grid-rows-[1fr_auto]">
             <div
               className="w-full h-full overflow-hidden flex flex-col justify-center items-center py-4"
               style={{

@@ -8,7 +8,7 @@ export function MobileLayout() {
   return (
     <main className="w-dvw h-dvh overflow-hidden">
       <div className="h-dvh overflow-hidden">
-        <div className="w-full h-full overflow-hidden grid grid-rows-[1fr_3.2rem]">
+        <div className="w-full h-full overflow-hidden grid grid-rows-[1fr_auto]">
           <div
             className="w-full h-full overflow-hidden flex flex-col justify-center items-center py-4"
             style={{
