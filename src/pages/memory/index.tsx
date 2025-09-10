@@ -2,7 +2,7 @@ import { Button, Form, Input, Space } from "antd";
 import { useState } from "react";
 import { useStates } from "../../hooks/useStates.ts";
 
-export function MemoryMain() {
+export default function MemoryPage() {
   const messageApi = useStates((state) => state.messageApi);
   const [userName, setUserName] = useState("用户");
   const [selfName, setSelfName] = useState("小助手");

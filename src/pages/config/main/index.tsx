@@ -1,10 +1,10 @@
 import { ReloadOutlined, SaveOutlined } from "@ant-design/icons";
 import { Button, Form, Input, Space, Tag, Tooltip } from "antd";
 import { useEffect, useState } from "react";
-import { useChatApi } from "../../hooks/useChatApi.ts";
-import { useStates } from "../../hooks/useStates.ts";
+import { useChatApi } from "../../../hooks/useChatApi.ts";
+import { useStates } from "../../../hooks/useStates.ts";
 
-export function ConfigMain() {
+export default function ConfigMainPage() {
   const openaiEndpoint = useChatApi((state) => state.openaiEndpoint);
   const openaiApiKey = useChatApi((state) => state.openaiApiKey);
   const openaiModelName = useChatApi((state) => state.openaiModelName);

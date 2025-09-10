@@ -26,7 +26,7 @@ interface SimpleMessage {
   uuid: string;
 }
 
-export function ChatSimple() {
+export default function ChatPage() {
   const disabled = useStates((state) => state.disabled);
   const setDisabled = useStates((state) => state.setDisabled);
   const messageApi = useStates((state) => state.messageApi);

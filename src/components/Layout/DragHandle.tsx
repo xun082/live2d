@@ -10,27 +10,33 @@ interface DragHandleProps {
 export function DragHandle({ x, setX, leftGap, rightGap }: DragHandleProps) {
   const isMobile = useIsMobile();
 
-  if (isMobile) return null;
+  if (isMobile) {
+    return null;
+  }
 
   return (
     <div
-      className="fixed top-1/2 right-0 w-[0.4rem] h-12 z-50 cursor-ew-resize border border-blue-900 rounded-full bg-blue-50 opacity-50 hover:opacity-100 translate-y-[-50%]"
-      style={{ marginRight: `calc(${x}px - 0.25rem)` }}
-      draggable
-      onDragStart={(e) => {
-        // @ts-expect-error 类型提示错误, 运行无问题
-        e.target.style.opacity = "0";
-      }}
-      onDragEnd={(e) => {
-        // @ts-expect-error 类型提示错误, 运行无问题
-        e.target.style.opacity = "1";
-      }}
-      onDrag={(e) => {
-        const newX = window.innerWidth - e.clientX;
-        if (newX < leftGap || newX > window.innerWidth - rightGap) {
-          return;
-        }
-        setX(newX);
+      className="absolute top-0 bottom-0 w-1 bg-transparent cursor-col-resize z-10"
+      style={{ left: `${x}px` }}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        const startX = e.clientX;
+        const startWidth = x;
+
+        const handleMouseMove = (e: MouseEvent) => {
+          const deltaX = startX - e.clientX;
+          const newWidth = startWidth + deltaX;
+          const clampedWidth = Math.max(leftGap, Math.min(rightGap, newWidth));
+          setX(clampedWidth);
+        };
+
+        const handleMouseUp = () => {
+          document.removeEventListener("mousemove", handleMouseMove);
+          document.removeEventListener("mouseup", handleMouseUp);
+        };
+
+        document.addEventListener("mousemove", handleMouseMove);
+        document.addEventListener("mouseup", handleMouseUp);
       }}
     />
   );

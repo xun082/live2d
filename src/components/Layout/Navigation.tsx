@@ -1,10 +1,8 @@
 import {
   ApiOutlined,
-  AudioOutlined,
   BlockOutlined,
   BookOutlined,
   CommentOutlined,
-  FontSizeOutlined,
   LayoutOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
@@ -25,8 +23,7 @@ export function Navigation() {
   // 根据当前路径确定选中的菜单项
   const getSelectedKeys = () => {
     const path = location.pathname;
-    if (path === "/" || path === "/chat/text") return ["/chat/text"];
-    if (path === "/chat/voice") return ["/chat/voice"];
+    if (path === "/" || path === "/chat") return ["/chat"];
     return [path];
   };
 
@@ -46,21 +43,9 @@ export function Navigation() {
               icon: <BookOutlined />,
             },
             {
-              key: "chat",
+              key: "/chat",
               label: "聊天",
               icon: <CommentOutlined />,
-              children: [
-                {
-                  key: "/chat/text",
-                  label: "文字语音聊天",
-                  icon: <FontSizeOutlined />,
-                },
-                {
-                  key: "/chat/voice",
-                  label: "连续语音对话",
-                  icon: <AudioOutlined />,
-                },
-              ],
             },
             {
               key: "/live2d",

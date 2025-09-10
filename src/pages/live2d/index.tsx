@@ -12,23 +12,17 @@ import {
   Tag,
   Typography,
 } from "antd";
-import type React from "react";
 import { useCallback, useEffect, useState } from "react";
-import { useLive2DMotions } from "../hooks/useLive2DMotions";
-import { useLive2dApi } from "../hooks/useLive2dApi";
+import { useLive2DMotions } from "../../hooks/useLive2DMotions";
+import { useLive2dApi } from "../../hooks/useLive2dApi";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-export const Live2DController: React.FC = () => {
+export default function Live2DPage() {
   const { live2d } = useLive2dApi();
-  const {
-    playRandomMotion,
-    playSpecificMotion,
-    playExpression,
-    setParameter,
-    getAvailableMotions,
-  } = useLive2DMotions();
+  const { playRandomMotion, playSpecificMotion, playExpression, setParameter } =
+    useLive2DMotions();
 
   const [motionGroups, setMotionGroups] = useState<string[]>([]);
   const [expressions, setExpressions] = useState<
@@ -423,7 +417,7 @@ export const Live2DController: React.FC = () => {
                                 >
                                   随机播放
                                 </Button>
-                                {motionsInGroup.map((motion, index) => (
+                                {motionsInGroup.map((_, index) => (
                                   <Button
                                     key={index}
                                     onClick={() =>
@@ -606,6 +600,4 @@ export const Live2DController: React.FC = () => {
       </Card>
     </div>
   );
-};
-
-export default Live2DController;
+}

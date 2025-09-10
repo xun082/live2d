@@ -5,11 +5,11 @@ import {
 } from "@ant-design/icons";
 import { Button, Form, Input, Select, Space, Tooltip } from "antd";
 import { useEffect, useState } from "react";
-import { useListenApi } from "../../hooks/useListenApi.ts";
-import { useSpeakApi } from "../../hooks/useSpeakApi.ts";
-import { useStates } from "../../hooks/useStates.ts";
+import { useListenApi } from "../../../hooks/useListenApi.ts";
+import { useSpeakApi } from "../../../hooks/useSpeakApi.ts";
+import { useStates } from "../../../hooks/useStates.ts";
 
-export function ConfigVoice() {
+export default function ConfigServicePage() {
   const setSpeakApi = useSpeakApi((state) => state.setSpeakApi);
   const speakApiList = useSpeakApi((state) => state.speakApiList);
   const currentSpeakApi = useSpeakApi((state) => state.currentSpeakApi);

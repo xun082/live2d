@@ -1,11 +1,11 @@
 import { createBrowserRouter } from "react-router-dom";
 import App from "../App";
-import { ChatSimple } from "../components/Chat/ChatSimple";
-import { ConfigLayout } from "../components/Config/ConfigLayout";
-import { ConfigMain } from "../components/Config/ConfigMain";
-import { ConfigVoice } from "../components/Config/ConfigVoice";
-import { Live2DController } from "../components/Live2DController";
-import { MemoryMain } from "../components/Memory/MemoryMain";
+import ChatPage from "../pages/chat/index";
+import ConfigLayoutPage from "../pages/config/layout/index";
+import ConfigMainPage from "../pages/config/main/index";
+import ConfigServicePage from "../pages/config/service/index";
+import Live2DPage from "../pages/live2d/index";
+import MemoryPage from "../pages/memory/index";
 
 export const router = createBrowserRouter([
   {
@@ -14,35 +14,31 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <ChatSimple />,
+        element: <ChatPage />,
       },
       {
         path: "memory",
-        element: <MemoryMain />,
+        element: <MemoryPage />,
       },
       {
-        path: "chat/text",
-        element: <ChatSimple />,
-      },
-      {
-        path: "chat/voice",
-        element: <ChatSimple />,
+        path: "chat",
+        element: <ChatPage />,
       },
       {
         path: "live2d",
-        element: <Live2DController />,
+        element: <Live2DPage />,
       },
       {
         path: "config/main",
-        element: <ConfigMain />,
+        element: <ConfigMainPage />,
       },
       {
         path: "config/service",
-        element: <ConfigVoice />,
+        element: <ConfigServicePage />,
       },
       {
         path: "config/layout",
-        element: <ConfigLayout />,
+        element: <ConfigLayoutPage />,
       },
     ],
   },

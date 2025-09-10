@@ -1,11 +1,10 @@
 import { FileImageOutlined, UndoOutlined } from "@ant-design/icons";
 import { Button, Form, Select, Slider, Upload } from "antd";
-import { useLive2dApi } from "../../hooks/useLive2dApi.ts";
+import { useLive2dApi } from "../../../hooks/useLive2dApi.ts";
+import { useStates } from "../../../hooks/useStates.ts";
+import { toBase64 } from "../../../lib/utils.ts";
 
-import { useStates } from "../../hooks/useStates.ts";
-import { toBase64 } from "../../lib/utils.ts";
-
-export function ConfigLayout() {
+export default function ConfigLayoutPage() {
   const setLoadLive2d = useLive2dApi((state) => state.setLoadLive2d);
   const live2dList = useLive2dApi((state) => state.live2dList);
   const live2dName = useLive2dApi((state) => state.live2dName);
