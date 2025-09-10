@@ -1,74 +1,76 @@
 /* Live2D 相关样式 */
 @keyframes up-down {
-	0% {
-		transform: translateY(0);
-	}
-	50% {
-		transform: translateY(-10px);
-	}
-	100% {
-		transform: translateY(0);
-	}
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0);
+  }
 }
 
 #live2d-container {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100dvw;
-	height: 100dvh;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	z-index: -500;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100dvw;
+  height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: -500;
+  transition: width 0.2s ease-in-out;
 }
 
 #live2d-container #live2d {
-	width: 100%;
-	height: 100%;
-	z-index: -500;
+  width: 100%;
+  height: 100%;
+  z-index: -500;
 }
 
 #live2d-container #live2d-message {
-	opacity: 0;
-	transition: opacity 0.5s;
-	position: absolute;
-	top: 0;
-	width: 200px;
-	height: 100px;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	z-index: -600;
-	color: #1f1f1f;
-	background-color: white;
-	border: 1px solid #233889;
-	border-radius: 10px;
-	animation: up-down 2.5s ease-in-out infinite;
-	padding: 8px;
-	font-size: 0.9rem;
-	overflow: hidden;
-	text-align: center;
+  opacity: 0;
+  transition: opacity 0.5s;
+  position: absolute;
+  top: 0;
+  width: 200px;
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: -600;
+  color: #1f1f1f;
+  background-color: white;
+  border: 1px solid #233889;
+  border-radius: 10px;
+  animation: up-down 2.5s ease-in-out infinite;
+  padding: 8px;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-align: center;
 }
 
 #back-container {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100dvw;
-	height: 100dvh;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	z-index: -1000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100dvw;
+  height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: -1000;
+  transition: width 0.2s ease-in-out;
 }
 
 #back-container #back {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
-	object-position: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }

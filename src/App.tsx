@@ -1,7 +1,12 @@
 import { Toaster } from "@/components/ui/sonner";
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Outlet } from "react-router-dom";
-import { DragHandle } from "./components/Layout/DragHandle";
+import {
+  Panel,
+  PanelGroup,
+  PanelResizeHandle,
+  ImperativePanelHandle,
+} from "react-resizable-panels";
 import { Footer } from "./components/Layout/Footer";
 import { Navigation } from "./components/Layout/Navigation";
 import { useIsMobile } from "./hooks/useIsMobile";
@@ -15,6 +20,7 @@ export default function App() {
   const hideTips = useLive2dApi((state) => state.hideTips);
   const isMobile = useIsMobile();
   const { isFullScreen } = useLive2dEffects();
+  const leftPanelRef = useRef<ImperativePanelHandle>(null);
 
   // 数据迁移和欢迎消息
   useEffect(() => {
@@ -33,10 +39,8 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [setTips, showTips, hideTips, isMobile]);
 
-  // 布局调整
-  const [x, setX] = useState<number>(450);
-
-  useEffect(() => {
+  // 更新 Live2D 容器宽度的函数
+  const updateLive2dContainerWidth = () => {
     const bg = document.getElementById("back-container");
     const l2d = document.getElementById("live2d-container");
 
@@ -52,34 +56,118 @@ export default function App() {
       bg.style.width = "0";
       l2d.style.width = "0";
     } else {
-      bg.style.width = `calc(100dvw - ${x}px)`;
-      l2d.style.width = `calc(100dvw - ${x}px)`;
+      // 在桌面模式下，获取左侧面板的实际宽度
+      const leftPanel = leftPanelRef.current;
+      if (leftPanel) {
+        const size = leftPanel.getSize();
+        const leftWidth = `${size}%`;
+        bg.style.width = leftWidth;
+        l2d.style.width = leftWidth;
+      }
     }
-  }, [x, isMobile, isFullScreen]);
+  };
 
+  // 布局调整 - 使用 react-resizable-panels
+  useEffect(() => {
+    updateLive2dContainerWidth();
+  }, [isMobile, isFullScreen]);
+
+  // 监听面板大小变化
+  useEffect(() => {
+    if (isMobile || isFullScreen) return;
+
+    const handleResize = () => {
+      updateLive2dContainerWidth();
+    };
+
+    // 使用 MutationObserver 监听 DOM 变化
+    const observer = new MutationObserver(handleResize);
+    const targetNode = document.body;
+    observer.observe(targetNode, {
+      attributes: true,
+      childList: true,
+      subtree: true,
+      attributeFilter: ["style"],
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [isMobile, isFullScreen]);
+
+  // 如果是移动端或全屏模式，使用简单布局
+  if (isMobile || isFullScreen) {
+    return (
+      <main className="w-dvw h-dvh overflow-hidden">
+        <div className="h-dvh overflow-hidden">
+          <div className="w-full h-full overflow-hidden grid grid-rows-[1fr_3.2rem_2.8rem]">
+            <div
+              className="w-full h-full overflow-hidden flex flex-col justify-center items-center py-4"
+              style={{
+                paddingLeft: isMobile ? "1rem" : "1.5rem",
+                paddingRight: isMobile ? "1rem" : "1.5rem",
+              }}
+            >
+              <div className="w-full overflow-hidden">
+                <Outlet />
+              </div>
+            </div>
+            <Navigation />
+            <Footer />
+          </div>
+        </div>
+        <Toaster />
+      </main>
+    );
+  }
+
+  // 桌面模式使用可调整大小的面板
   return (
     <main className="w-dvw h-dvh overflow-hidden">
-      <DragHandle x={x} setX={setX} leftGap={350} rightGap={450} />
-      <div
-        className="h-dvh overflow-hidden float-right"
-        style={{ width: isMobile ? "100dvw" : `${x}px` }}
-      >
-        <div className="w-full h-full overflow-hidden grid grid-rows-[1fr_3.2rem_2.8rem]">
+      <PanelGroup direction="horizontal" className="h-full">
+        {/* 左侧 Live2D 区域 */}
+        <Panel
+          ref={leftPanelRef}
+          defaultSize={60}
+          minSize={30}
+          maxSize={80}
+          className="relative"
+          onResize={updateLive2dContainerWidth}
+        >
           <div
-            className="w-full h-full overflow-hidden flex flex-col justify-center items-center py-4"
-            style={{
-              paddingLeft: isMobile ? "1rem" : "1.5rem",
-              paddingRight: isMobile ? "1rem" : "1.5rem",
-            }}
-          >
-            <div className="w-full overflow-hidden">
-              <Outlet />
+            id="back-container"
+            className="w-full h-full"
+            style={{ width: "100%" }}
+          />
+          <div
+            id="live2d-container"
+            className="absolute inset-0 w-full h-full"
+            style={{ width: "100%" }}
+          />
+        </Panel>
+
+        {/* 拖拽手柄 */}
+        <PanelResizeHandle className="w-1 bg-gray-300 hover:bg-gray-400 transition-colors cursor-col-resize" />
+
+        {/* 右侧控制面板 */}
+        <Panel defaultSize={40} minSize={20} maxSize={70} className="bg-white">
+          <div className="w-full h-full overflow-hidden grid grid-rows-[1fr_3.2rem_2.8rem]">
+            <div
+              className="w-full h-full overflow-hidden flex flex-col justify-center items-center py-4"
+              style={{
+                paddingLeft: "1.5rem",
+                paddingRight: "1.5rem",
+              }}
+            >
+              <div className="w-full overflow-hidden">
+                <Outlet />
+              </div>
             </div>
+            <Navigation />
+            <Footer />
           </div>
-          <Navigation />
-          <Footer />
-        </div>
-      </div>
+        </Panel>
+      </PanelGroup>
       <Toaster />
     </main>
   );
