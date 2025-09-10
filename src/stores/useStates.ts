@@ -1,4 +1,3 @@
-import type { MessageInstance } from 'antd/es/message/interface'
 import type { ReactNode } from 'react'
 import { create } from 'zustand'
 
@@ -7,15 +6,11 @@ type GlobalState = {
 	setDisabled: (disabled: false | string | ReactNode) => void
 	forceAllowNav: boolean
 	setForceAllowNav: (forceAllowNav: boolean) => void
-	messageApi: MessageInstance | null
-	setMessageApi: (messageApi: MessageInstance | null) => void
 }
 
 export const useStates = create<GlobalState>()((setState) => ({
 	disabled: false,
 	setDisabled: (disabled) => setState({ disabled }),
-	messageApi: null,
-	setMessageApi: (messageApi) => setState({ messageApi }),
 	forceAllowNav: false,
 	setForceAllowNav: (forceAllowNav) => setState({ forceAllowNav }),
 }))

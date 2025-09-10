@@ -1,23 +1,35 @@
 import emojiReg from "emoji-regex";
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { db } from "../../lib/db/index.ts";
 import { useAIMotionProcessor } from "../../hooks/useAIMotionProcessor.ts";
-import { useChatApi } from "../../hooks/useChatApi.ts";
-import { useListenApi } from "../../hooks/useListenApi.ts";
-import { useLive2dApi } from "../../hooks/useLive2dApi.ts";
-import { useSpeakApi } from "../../hooks/useSpeakApi.ts";
-import { useStates } from "../../hooks/useStates.ts";
+import { db } from "../../lib/db/index.ts";
 import { sleep, uuid } from "../../lib/utils.ts";
+import { useChatApi } from "../../stores/useChatApi.ts";
+import { useListenApi } from "../../stores/useListenApi.ts";
+import { useLive2dApi } from "../../stores/useLive2dApi.ts";
+import { useSpeakApi } from "../../stores/useSpeakApi.ts";
+import { useStates } from "../../stores/useStates.ts";
 
 import {
-  ClearOutlined,
-  DashboardOutlined,
-  LoadingOutlined,
-  RestOutlined,
-} from "@ant-design/icons";
-import { Sender } from "@ant-design/x";
-import { Button, type GetRef, Popconfirm, Popover } from "antd";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { MessageInput } from "@/components/ui/message-input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { BarChart3, Loader2, RotateCcw, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface SimpleMessage {
   role: "user" | "assistant" | "system";
@@ -29,7 +41,6 @@ interface SimpleMessage {
 export default function ChatPage() {
   const disabled = useStates((state) => state.disabled);
   const setDisabled = useStates((state) => state.setDisabled);
-  const messageApi = useStates((state) => state.messageApi);
 
   const chat = useChatApi((state) => state.chat);
   const usedToken = useChatApi((state) => state.usedToken);
@@ -52,7 +63,7 @@ export default function ChatPage() {
   const [recognition, setRecognition] = useState<any | null>(null);
   const [inputValue, setInputValue] = useState<string>("");
 
-  const senderRef = useRef<GetRef<typeof Sender>>(null);
+  const senderRef = useRef<HTMLDivElement>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
 
   // 初始化会话
@@ -88,12 +99,12 @@ export default function ChatPage() {
         }
       } catch (error) {
         console.error("初始化会话失败:", error);
-        messageApi?.error("初始化会话失败");
+        toast.error("初始化会话失败");
       }
     };
 
     initSession();
-  }, [messageApi]);
+  }, []);
 
   // 自动滚动到底部
   useEffect(() => {
@@ -105,7 +116,7 @@ export default function ChatPage() {
   // 聊天功能
   const onChat = async (text: string) => {
     if (!currentSessionId) {
-      messageApi?.error("会话未初始化");
+      toast.error("会话未初始化");
       return;
     }
 
@@ -220,7 +231,7 @@ export default function ChatPage() {
       flushSync(() =>
         setDisabled(
           <p className="flex justify-center items-center gap-[0.3rem]">
-            回应中 <LoadingOutlined />
+            回应中 <Loader2 className="animate-spin" />
           </p>
         )
       );
@@ -276,14 +287,14 @@ export default function ChatPage() {
       flushSync(() =>
         setDisabled(
           <p className="flex justify-center items-center gap-[0.3rem]">
-            等待语音生成结束 <LoadingOutlined />
+            等待语音生成结束 <Loader2 className="animate-spin" />
           </p>
         )
       );
 
       await tts;
     } catch (error) {
-      messageApi?.error(error instanceof Error ? error.message : "未知错误");
+      toast.error(error instanceof Error ? error.message : "未知错误");
       console.error("聊天失败:", error);
     }
   };
@@ -296,14 +307,14 @@ export default function ChatPage() {
       flushSync(() =>
         setDisabled(
           <p className="flex justify-center items-center gap-[0.3rem]">
-            更新记忆中 <LoadingOutlined />
+            更新记忆中 <Loader2 className="animate-spin" />
           </p>
         )
       );
 
       // 生成对话摘要
       const conversation = messages
-        .map((msg) => `${msg.role}: ${msg.content}`)
+        .map((msg: SimpleMessage) => `${msg.role}: ${msg.content}`)
         .join("\n");
 
       const summaryPrompt = `请为以下对话生成一个简洁的摘要，突出重要信息：\n\n${conversation}`;
@@ -337,11 +348,9 @@ export default function ChatPage() {
         await db.clearSessionMessages(currentSessionId);
       }
 
-      messageApi?.success("记忆更新成功");
+      toast.success("记忆更新成功");
     } catch (error) {
-      messageApi?.error(
-        error instanceof Error ? error.message : "更新记忆失败"
-      );
+      toast.error(error instanceof Error ? error.message : "更新记忆失败");
       console.error("更新记忆失败:", error);
     }
   };
@@ -352,7 +361,7 @@ export default function ChatPage() {
       flushSync(() =>
         setDisabled(
           <p className="flex justify-center items-center gap-[0.3rem]">
-            清除对话中 <LoadingOutlined />
+            清除对话中 <Loader2 className="animate-spin" />
           </p>
         )
       );
@@ -364,18 +373,16 @@ export default function ChatPage() {
         await db.clearSessionMessages(currentSessionId);
       }
 
-      messageApi?.success("对话已清除");
+      toast.success("对话已清除");
       setInputValue("");
     } catch (error) {
-      messageApi?.error(
-        error instanceof Error ? error.message : "清除对话失败"
-      );
+      toast.error(error instanceof Error ? error.message : "清除对话失败");
     }
   };
 
   const [memoMaxHeight, setMemoMaxHeight] = useState<string>("0px");
   useEffect(() => {
-    const initSenderHeight = senderRef.current?.nativeElement.clientHeight;
+    const initSenderHeight = senderRef.current?.clientHeight;
     setMemoMaxHeight(`calc(100dvh - ${initSenderHeight}px - 11rem)`);
   }, []);
 
@@ -388,7 +395,7 @@ export default function ChatPage() {
       >
         {messages.length ? (
           <div className="space-y-4">
-            {messages.map((msg, index) => (
+            {messages.map((msg: SimpleMessage, index: number) => (
               <div
                 key={`${msg.uuid}-${index}`}
                 className={`flex ${
@@ -415,47 +422,81 @@ export default function ChatPage() {
         )}
       </div>
 
-      <Sender
+      <MessageInput
         ref={senderRef}
         header={
           <div className="w-full flex justify-start items-center gap-2 p-2 pb-0">
-            <Popconfirm
-              title="您确定要立即更新记忆吗？"
-              onConfirm={updateMemory}
-              okText="确定"
-              cancelText="取消"
-            >
-              <Button
-                size="small"
-                icon={<ClearOutlined />}
-                disabled={disabled !== false || messages.length === 0}
-              >
-                <span className="text-xs">更新记忆</span>
-              </Button>
-            </Popconfirm>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={disabled !== false || messages.length === 0}
+                  className="h-8"
+                >
+                  <Trash2 size={14} className="mr-1" />
+                  <span className="text-xs">更新记忆</span>
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>确认更新记忆</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    您确定要立即更新记忆吗？这将把当前对话保存到记忆中并清空当前对话。
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>取消</AlertDialogCancel>
+                  <AlertDialogAction onClick={updateMemory}>
+                    确定
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
 
-            <Popconfirm
-              title="您确定要清除当前对话吗？"
-              onConfirm={clearChat}
-              okText="确定"
-              cancelText="取消"
-            >
-              <Button
-                size="small"
-                icon={<RestOutlined />}
-                disabled={disabled !== false || messages.length === 0}
-              >
-                <span className="text-xs">清除当前对话</span>
-              </Button>
-            </Popconfirm>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={disabled !== false || messages.length === 0}
+                  className="h-8"
+                >
+                  <RotateCcw size={14} className="mr-1" />
+                  <span className="text-xs">清除当前对话</span>
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>确认清除对话</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    您确定要清除当前对话吗？此操作不可撤销。
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>取消</AlertDialogCancel>
+                  <AlertDialogAction onClick={clearChat}>
+                    确定
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
 
             {typeof usedToken === "number" && usedToken > 0 && (
-              <Popover content={`上次词元用量: ${usedToken}`}>
-                <Button
-                  size="small"
-                  icon={<DashboardOutlined />}
-                  disabled={disabled !== false}
-                />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={disabled !== false}
+                    className="h-8 w-8 p-0"
+                  >
+                    <BarChart3 size={14} />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent>
+                  <p>上次词元用量: {usedToken}</p>
+                </PopoverContent>
               </Popover>
             )}
           </div>
@@ -463,14 +504,14 @@ export default function ChatPage() {
         onSubmit={async () => {
           const text = inputValue.trim();
           if (!text) {
-            messageApi?.warning("请输入内容");
+            toast.warning("请输入内容");
             return;
           }
 
           flushSync(() =>
             setDisabled(
               <p className="flex justify-center items-center gap-[0.3rem]">
-                对话中 <LoadingOutlined />
+                对话中 <Loader2 className="animate-spin" />
               </p>
             )
           );
@@ -482,23 +523,22 @@ export default function ChatPage() {
         disabled={disabled !== false}
         loading={disabled !== false}
         value={inputValue}
-        onChange={(value) => {
+        onChange={(value: string) => {
           setInputValue(value);
           setTimeout(() => {
             setMemoMaxHeight(
-              `calc(100dvh - ${senderRef.current?.nativeElement.clientHeight}px - 11.5rem)`
+              `calc(100dvh - ${senderRef.current?.clientHeight}px - 11.5rem)`
             );
           }, 10);
         }}
-        submitType="shiftEnter"
         placeholder="按 Shift + Enter 发送消息"
         allowSpeech={
           listen
             ? {
                 recording: recognition !== null,
-                onRecordingChange: async (recording) => {
+                onRecordingChange: async (recording: boolean) => {
                   if (recording) {
-                    messageApi?.info("再次点击按钮结束说话");
+                    toast.info("再次点击按钮结束说话");
                     const api = listen();
                     setRecognition(api);
                     api.start();
@@ -515,7 +555,7 @@ export default function ChatPage() {
                     }
                     setInputValue(text);
                   } catch (e) {
-                    messageApi?.warning(
+                    toast.warning(
                       e instanceof Error
                         ? e.message
                         : typeof e === "string"

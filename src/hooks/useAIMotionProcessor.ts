@@ -1,10 +1,37 @@
-import { useEffect, useRef } from "react";
-import { useLive2DMotions } from "./useLive2DMotions.ts";
-import { useChatApi } from "./useChatApi.ts";
+import { useCallback, useEffect, useRef } from "react";
+import { useChatApi } from "../stores/useChatApi.ts";
+import { useLive2dApi } from "../stores/useLive2dApi.ts";
 
 export const useAIMotionProcessor = () => {
-  const { playRandomMotion, playSpecificMotion } = useLive2DMotions();
+  const { live2d } = useLive2dApi();
   const setMotionProcessor = useChatApi((state) => state.setMotionProcessor);
+
+  // Live2D motion functions
+  const playRandomMotion = useCallback(
+    async (group: string) => {
+      if (!live2d) return false;
+      try {
+        return await live2d.playMotion(group);
+      } catch (error) {
+        console.error("Error playing motion:", error);
+        return false;
+      }
+    },
+    [live2d]
+  );
+
+  const playSpecificMotion = useCallback(
+    async (group: string, index: number) => {
+      if (!live2d) return false;
+      try {
+        return await live2d.playMotion(group, index);
+      } catch (error) {
+        console.error("Error playing motion:", error);
+        return false;
+      }
+    },
+    [live2d]
+  );
   const lastMotionRef = useRef<string>("Idle");
   const motionCounterRef = useRef<number>(0);
 

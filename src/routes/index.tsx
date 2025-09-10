@@ -4,7 +4,6 @@ import ChatPage from "../pages/chat/index";
 import ConfigLayoutPage from "../pages/config/layout/index";
 import ConfigMainPage from "../pages/config/main/index";
 import ConfigServicePage from "../pages/config/service/index";
-import Live2DPage from "../pages/live2d/index";
 import MemoryPage from "../pages/memory/index";
 
 export const router = createBrowserRouter([
@@ -23,10 +22,6 @@ export const router = createBrowserRouter([
       {
         path: "chat",
         element: <ChatPage />,
-      },
-      {
-        path: "live2d",
-        element: <Live2DPage />,
       },
       {
         path: "config/main",
