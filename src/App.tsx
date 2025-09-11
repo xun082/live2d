@@ -7,13 +7,15 @@ import { useWelcomeMessage } from "./hooks/useWelcomeMessage";
 
 export default function App() {
   const isMobile = useIsMobile();
-  const { isFullScreen } = useLive2dEffects();
+
+  // 初始化 Live2D 效果
+  useLive2dEffects();
 
   // 初始化欢迎消息和数据迁移
   useWelcomeMessage();
 
-  // 根据设备类型和全屏状态选择布局
-  if (isMobile || isFullScreen) {
+  // 根据设备类型选择布局
+  if (isMobile) {
     return (
       <>
         <MobileLayout />

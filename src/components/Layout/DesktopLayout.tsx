@@ -9,11 +9,13 @@ import {
 import { Navigation } from "./Navigation";
 import { useLive2dContainerWidth } from "../../hooks/useLive2dContainerWidth";
 import { useResponsive } from "../../hooks/useResponsive";
+import { useLive2dApi } from "../../stores/useLive2dApi";
 
 export function DesktopLayout() {
   const leftPanelRef = useRef<ImperativePanelHandle>(null);
   const { updateLive2dContainerWidth } = useLive2dContainerWidth(leftPanelRef);
   const { screenType } = useResponsive();
+  const isFullScreen = useLive2dApi((state) => state.isFullScreen);
 
   // 根据屏幕类型动态调整面板比例
   const getPanelSizes = () => {
@@ -32,6 +34,38 @@ export function DesktopLayout() {
   };
 
   const panelSizes = getPanelSizes();
+
+  if (isFullScreen) {
+    return (
+      <main className="w-dvw h-dvh overflow-hidden desktop-layout relative">
+        {/* 全屏时的 Live2D 区域 */}
+        <div
+          id="back-container"
+          className="absolute inset-0 w-full h-full"
+          style={{ width: "100dvw", height: "100dvh" }}
+        />
+        <div
+          id="live2d-container"
+          className="absolute inset-0 w-full h-full"
+          style={{ width: "100dvw", height: "100dvh" }}
+        />
+
+        {/* 透明的内容覆盖层 */}
+        <div className="absolute inset-0 w-full h-full pointer-events-none">
+          <div className="w-full h-full overflow-hidden grid grid-rows-[1fr_auto] pointer-events-auto">
+            <div className="w-full h-full overflow-hidden flex flex-col justify-center items-center py-4 px-6 bg-transparent">
+              <div className="w-full max-w-2xl overflow-hidden bg-white/80 backdrop-blur-sm rounded-lg shadow-lg">
+                <Outlet />
+              </div>
+            </div>
+            <div className="bg-white/90 backdrop-blur-sm">
+              <Navigation />
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="w-dvw h-dvh overflow-hidden desktop-layout">
