@@ -1,20 +1,20 @@
 import { Outlet } from "react-router-dom";
 import { Navigation } from "./Navigation";
-import { useIsMobile } from "../../hooks/useIsMobile";
+import { useResponsive } from "../../hooks/useResponsive";
 
 export function MobileLayout() {
-  const isMobile = useIsMobile();
+  const { isMobile } = useResponsive();
 
   return (
     <main className="w-dvw h-dvh overflow-hidden">
       <div className="h-dvh overflow-hidden">
         <div className="w-full h-full overflow-hidden grid grid-rows-[1fr_auto]">
           <div
-            className="w-full h-full overflow-hidden flex flex-col justify-center items-center py-4"
-            style={{
-              paddingLeft: isMobile ? "1rem" : "1.5rem",
-              paddingRight: isMobile ? "1rem" : "1.5rem",
-            }}
+            className={`
+              w-full h-full overflow-hidden flex flex-col justify-center items-center py-4
+              transition-all duration-300
+              ${isMobile ? "px-4" : "px-6"}
+            `}
           >
             <div className="w-full overflow-hidden">
               <Outlet />

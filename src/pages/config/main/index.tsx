@@ -18,8 +18,10 @@ import {
   TooltipTrigger,
 } from "../../../components/ui/tooltip";
 import { useChatApi } from "../../../stores/useChatApi.ts";
+import { useResponsive } from "../../../hooks/useResponsive";
 
 export default function ConfigMainPage() {
+  const { screenType, isMobile } = useResponsive();
   const openaiEndpoint = useChatApi((state) => state.openaiEndpoint);
   const openaiApiKey = useChatApi((state) => state.openaiApiKey);
   const openaiModelName = useChatApi((state) => state.openaiModelName);
@@ -42,24 +44,47 @@ export default function ConfigMainPage() {
   useEffect(() => setModelNameValue(openaiModelName), [openaiModelName]);
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-6 space-y-8">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          主配置
-        </h1>
-        <p className="text-muted-foreground">配置 AI 推理服务的连接参数</p>
-      </div>
+    <div className="w-full h-full flex flex-col overflow-hidden">
+      <div className={`
+        flex-1 overflow-y-auto scroll-smooth
+        ${isMobile ? 'px-4 py-4' : 'px-6 py-6'}
+      `}>
+        <div className={`
+          mx-auto space-y-6
+          ${screenType === 'mobile' ? 'max-w-sm' : ''}
+          ${screenType === 'tablet' ? 'max-w-2xl' : ''}
+          ${screenType === 'desktop-sm' ? 'max-w-3xl' : ''}
+          ${screenType === 'desktop-md' ? 'max-w-4xl' : ''}
+          ${screenType === 'desktop-lg' ? 'max-w-5xl' : ''}
+        `}>
+          {/* Header */}
+          <div className="text-center space-y-2">
+            <h1 className={`
+              font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent
+              ${isMobile ? 'text-2xl' : 'text-3xl'}
+            `}>
+              推理服务
+            </h1>
+            <p className={`
+              text-muted-foreground
+              ${isMobile ? 'text-sm' : 'text-base'}
+            `}>
+              配置 AI 推理服务的连接参数
+            </p>
+          </div>
 
-      <TooltipProvider>
-        <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50/50">
-          <CardHeader className="pb-6">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <Settings className="h-5 w-5 text-blue-600" />
-              API 配置
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-8">
+          <TooltipProvider>
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50/50">
+              <CardHeader className={`${isMobile ? 'pb-4' : 'pb-6'}`}>
+                <CardTitle className={`
+                  flex items-center gap-2
+                  ${isMobile ? 'text-lg' : 'text-xl'}
+                `}>
+                  <Settings className={`text-blue-600 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+                  API 配置
+                </CardTitle>
+              </CardHeader>
+              <CardContent className={`${isMobile ? 'space-y-6' : 'space-y-8'}`}>
             {/* OpenAI Endpoint Configuration */}
             <div className="space-y-4">
               <Label className="text-sm font-semibold flex items-center gap-2">
@@ -262,9 +287,11 @@ export default function ConfigMainPage() {
                 </Tooltip>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </TooltipProvider>
+              </CardContent>
+            </Card>
+          </TooltipProvider>
+        </div>
+      </div>
     </div>
   );
 }

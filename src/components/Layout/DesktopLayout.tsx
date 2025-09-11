@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef } from "react";
 import { Outlet } from "react-router-dom";
 import {
   Panel,
@@ -8,35 +8,26 @@ import {
 } from "react-resizable-panels";
 import { Navigation } from "./Navigation";
 import { useLive2dContainerWidth } from "../../hooks/useLive2dContainerWidth";
+import { useResponsive } from "../../hooks/useResponsive";
 
 export function DesktopLayout() {
   const leftPanelRef = useRef<ImperativePanelHandle>(null);
   const { updateLive2dContainerWidth } = useLive2dContainerWidth(leftPanelRef);
-  const [windowSize, setWindowSize] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight,
-  });
+  const { screenType } = useResponsive();
 
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  // 根据窗口大小动态调整面板比例
+  // 根据屏幕类型动态调整面板比例
   const getPanelSizes = () => {
-    if (windowSize.width < 1200) {
-      return { left: 50, right: 50 }; // 小屏幕时平分
-    } else if (windowSize.width < 1600) {
-      return { left: 60, right: 40 }; // 中等屏幕
-    } else {
-      return { left: 65, right: 35 }; // 大屏幕时Live2D区域更大
+    switch (screenType) {
+      case "tablet":
+        return { left: 50, right: 50 }; // 平板时平分
+      case "desktop-sm":
+        return { left: 55, right: 45 }; // 小桌面屏幕
+      case "desktop-md":
+        return { left: 60, right: 40 }; // 中等桌面屏幕
+      case "desktop-lg":
+        return { left: 65, right: 35 }; // 大桌面屏幕，Live2D区域更大
+      default:
+        return { left: 50, right: 50 };
     }
   };
 
@@ -49,8 +40,8 @@ export function DesktopLayout() {
         <Panel
           ref={leftPanelRef}
           defaultSize={panelSizes.left}
-          minSize={windowSize.width < 1200 ? 40 : 30}
-          maxSize={windowSize.width < 1200 ? 70 : 80}
+          minSize={screenType === "tablet" ? 40 : 30}
+          maxSize={screenType === "tablet" ? 70 : 80}
           className="relative"
           onResize={updateLive2dContainerWidth}
         >
@@ -72,17 +63,21 @@ export function DesktopLayout() {
         {/* 右侧控制面板 */}
         <Panel
           defaultSize={panelSizes.right}
-          minSize={windowSize.width < 1200 ? 30 : 20}
-          maxSize={windowSize.width < 1200 ? 60 : 70}
+          minSize={screenType === "tablet" ? 30 : 20}
+          maxSize={screenType === "tablet" ? 60 : 70}
           className="bg-white"
         >
           <div className="w-full h-full overflow-hidden grid grid-rows-[1fr_auto]">
             <div
-              className="w-full h-full overflow-hidden flex flex-col justify-center items-center py-4"
-              style={{
-                paddingLeft: windowSize.width < 1200 ? "1rem" : "1.5rem",
-                paddingRight: windowSize.width < 1200 ? "1rem" : "1.5rem",
-              }}
+              className={`
+                w-full h-full overflow-hidden flex flex-col justify-center items-center py-4
+                transition-all duration-300
+                ${
+                  screenType === "tablet" || screenType === "desktop-sm"
+                    ? "px-4"
+                    : "px-6"
+                }
+              `}
             >
               <div className="w-full overflow-hidden">
                 <Outlet />

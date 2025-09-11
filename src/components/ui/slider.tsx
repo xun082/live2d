@@ -115,8 +115,8 @@ const Slider = React.forwardRef<
             "block rounded-full border-2 bg-white shadow-lg ring-offset-background transition-all duration-200",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             "disabled:pointer-events-none disabled:opacity-50",
-            "hover:shadow-xl hover:scale-110",
-            "active:scale-105",
+            "hover:shadow-xl",
+            "active:shadow-md",
             thumbSizeClasses[size],
             currentVariant.thumb
           )}

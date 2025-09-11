@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { BREAKPOINTS } from "../lib/breakpoints";
 
 export function useIsMobile() {
   return useSyncExternalStore(subscribe, getSnapshot);
@@ -10,13 +11,14 @@ function subscribe(callback: () => void) {
 }
 
 function getSnapshot() {
-  // 在桌面端Tauri应用中，使用更合理的断点
-  // 同时考虑用户代理字符串来更准确判断设备类型
+  // 检测移动设备用户代理
   const isMobileUserAgent =
     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
       navigator.userAgent
     );
-  const isSmallScreen = window.innerWidth < 1024; // 提高断点到1024px，更适合桌面端
+
+  // 使用统一的断点检测小屏幕
+  const isSmallScreen = window.innerWidth < BREAKPOINTS.TABLET;
 
   return isMobileUserAgent || isSmallScreen;
 }

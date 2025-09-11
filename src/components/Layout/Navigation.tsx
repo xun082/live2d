@@ -10,6 +10,7 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useStates } from "../../stores/useStates";
+import { useResponsive } from "../../hooks/useResponsive";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 
@@ -18,26 +19,20 @@ export function Navigation() {
   const navigate = useNavigate();
   const disabled = useStates((state) => state.disabled);
   const forceAllowNav = useStates((state) => state.forceAllowNav);
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const { screenType, isSmallScreen, isDesktop } = useResponsive();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // 当屏幕变为桌面大小时自动关闭菜单
   useEffect(() => {
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-      // 当屏幕变大时自动关闭菜单
-      if (window.innerWidth >= 1200) {
-        setIsMenuOpen(false);
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+    if (isDesktop) {
+      setIsMenuOpen(false);
+    }
+  }, [isDesktop]);
 
   const handleNavigation = (path: string) => {
     navigate(path);
     // 在小屏幕时导航后关闭菜单
-    if (windowWidth < 1200) {
+    if (isSmallScreen) {
       setIsMenuOpen(false);
     }
   };
@@ -91,23 +86,29 @@ export function Navigation() {
   ];
 
   // 根据屏幕大小决定显示方式
-  const getNavItems = () => {
-    if (windowWidth < 1200) {
-      // 小屏幕：显示汉堡菜单
-      return [];
-    } else {
-      // 大屏幕：显示所有项目
-      return allNavItems;
-    }
-  };
-
-  const navItems = getNavItems();
+  const shouldShowFullNav = isDesktop;
+  const navItems = shouldShowFullNav ? allNavItems : [];
 
   return (
     <div className="w-full flex justify-center items-center py-2 px-2 sm:py-4 sm:px-4">
-      <Card className="w-full max-w-4xl shadow-lg border-0 bg-gradient-to-r from-white to-gray-50/50 backdrop-blur-sm">
-        <nav className="flex items-center justify-center p-2 sm:p-3">
-          {windowWidth < 1200 ? (
+      <Card
+        className={`
+        w-full shadow-lg border-0 bg-gradient-to-r from-white to-gray-50/50 backdrop-blur-sm
+        transition-all duration-300 ease-in-out
+        ${screenType === "mobile" ? "max-w-sm" : ""}
+        ${screenType === "tablet" ? "max-w-2xl" : ""}
+        ${screenType === "desktop-sm" ? "max-w-3xl" : ""}
+        ${screenType === "desktop-md" ? "max-w-4xl" : ""}
+        ${screenType === "desktop-lg" ? "max-w-5xl" : ""}
+      `}
+      >
+        <nav
+          className={`
+          flex items-center justify-center transition-all duration-300
+          ${screenType === "mobile" ? "p-2" : "p-3"}
+        `}
+        >
+          {!shouldShowFullNav ? (
             // 小屏幕：汉堡菜单
             <div className="w-full flex items-center justify-between">
               {/* 当前选中的页面标题 */}
@@ -145,7 +146,14 @@ export function Navigation() {
             </div>
           ) : (
             // 大屏幕：完整导航
-            <div className="flex items-center space-x-2">
+            <div
+              className={`
+              flex items-center transition-all duration-300
+              ${screenType === "desktop-sm" ? "space-x-1" : ""}
+              ${screenType === "desktop-md" ? "space-x-2" : ""}
+              ${screenType === "desktop-lg" ? "space-x-3" : ""}
+            `}
+            >
               {navItems.map((item, index) => {
                 const Icon = item.icon;
                 const isItemSelected = isSelected(item.key);
@@ -164,23 +172,44 @@ export function Navigation() {
                       onClick={() => handleNavigation(item.key)}
                       disabled={isDisabled}
                       className={`
-                        relative flex items-center gap-2 px-4 py-2 h-10
-                        transition-all duration-300 ease-in-out
+                        relative flex items-center gap-2 transition-all duration-300 ease-in-out
+                        ${
+                          screenType === "desktop-sm"
+                            ? "px-2 py-1 h-8 text-xs"
+                            : ""
+                        }
+                        ${
+                          screenType === "desktop-md"
+                            ? "px-3 py-2 h-9 text-sm"
+                            : ""
+                        }
+                        ${
+                          screenType === "desktop-lg"
+                            ? "px-4 py-2 h-10 text-base"
+                            : ""
+                        }
                         ${
                           isItemSelected
-                            ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:shadow-xl hover:scale-105"
-                            : "hover:bg-gray-100 hover:scale-105 text-gray-700 hover:text-gray-900"
+                            ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:shadow-xl"
+                            : "hover:bg-gray-100 text-gray-700 hover:text-gray-900"
                         }
-                        ${isConfigItem ? "text-sm" : "text-base font-medium"}
-                        rounded-xl border-0
-                        hover:border-0
-                        disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
+                        ${
+                          isConfigItem && screenType !== "desktop-lg"
+                            ? "text-xs"
+                            : "font-medium"
+                        }
+                        rounded-xl border-0 hover:border-0
+                        disabled:opacity-50 disabled:cursor-not-allowed
                       `}
                     >
                       <Icon
-                        className={`h-4 w-4 transition-colors duration-200 ${
-                          isItemSelected ? "text-white" : "text-gray-600"
-                        }`}
+                        className={`
+                          transition-colors duration-200
+                          ${screenType === "desktop-sm" ? "h-3 w-3" : ""}
+                          ${screenType === "desktop-md" ? "h-4 w-4" : ""}
+                          ${screenType === "desktop-lg" ? "h-4 w-4" : ""}
+                          ${isItemSelected ? "text-white" : "text-gray-600"}
+                        `}
                       />
                       <span className="font-medium">{item.label}</span>
 
@@ -197,7 +226,7 @@ export function Navigation() {
         </nav>
 
         {/* 展开的菜单 */}
-        {windowWidth < 1200 && isMenuOpen && (
+        {!shouldShowFullNav && isMenuOpen && (
           <div className="border-t border-gray-200 bg-white/80 backdrop-blur-sm">
             <div className="p-3 space-y-2">
               {allNavItems.map((item) => {
