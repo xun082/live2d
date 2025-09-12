@@ -648,12 +648,18 @@ export const PromptBox = React.forwardRef<HTMLDivElement, PromptBoxProps>(
                         disabled={disabled || loading || !hasValue}
                         className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 disabled:pointer-events-none bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg shadow-blue-600/25 hover:shadow-blue-700/35 disabled:from-gray-400 disabled:to-gray-500 disabled:shadow-none hover:scale-105 active:scale-95"
                       >
-                        <SendIcon className="h-5 w-5" />
-                        <span className="sr-only">Send message</span>
+                        {loading ? (
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <SendIcon className="h-5 w-5" />
+                        )}
+                        <span className="sr-only">
+                          {loading ? "Processing..." : "Send message"}
+                        </span>
                       </button>
                     </TooltipTrigger>
                     <TooltipContent side="top" showArrow={true}>
-                      <p>Send</p>
+                      <p>{loading ? "Processing..." : "Send"}</p>
                     </TooltipContent>
                   </Tooltip>
                 </div>

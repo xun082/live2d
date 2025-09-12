@@ -13,6 +13,7 @@ import {
   EmptyState,
   MessageItem,
   LoadingStates,
+  MemoryIndicator,
 } from "../../components/chat";
 import { toast } from "sonner";
 
@@ -36,7 +37,14 @@ export default function ChatPage() {
     setMessages,
   } = useChatSession();
 
-  const { onChat, updateMemory, clearChat, usedToken } = useChatOperations({
+  const {
+    onChat,
+    updateMemory,
+    clearChat,
+    usedToken,
+    contextInfo,
+    conversationPattern,
+  } = useChatOperations({
     currentSessionId,
     messages,
     addMessage,
@@ -73,6 +81,15 @@ export default function ChatPage() {
         style={{ maxHeight: memoMaxHeight }}
         ref={messagesRef}
       >
+        {/* 智能记忆指示器 */}
+        {(contextInfo || conversationPattern) && (
+          <MemoryIndicator
+            contextInfo={contextInfo || undefined}
+            conversationPattern={conversationPattern || undefined}
+            className="mb-4"
+          />
+        )}
+
         {messages.length ? (
           <div className="space-y-6">
             {messages.map((msg, index: number) => (
