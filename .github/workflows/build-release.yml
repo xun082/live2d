@@ -3,15 +3,12 @@ name: Build Release
 on:
   push:
     branches:
-      - 'release**'
+      - 'release/**'
+      - 'release-*'
     tags:
       - 'v*.*.*'
   workflow_dispatch:
     inputs:
-      tag:
-        description: 'Tag to release'
-        required: false
-        default: ''
       draft:
         description: 'Create as draft release'
         required: false
@@ -34,11 +31,6 @@ jobs:
             arch: 'x64'
             bundle: 'msi,nsis'
             rust-targets: 'x86_64-pc-windows-msvc'
-          - platform: 'windows-latest'
-            target: 'aarch64-pc-windows-msvc'
-            arch: 'arm64'
-            bundle: 'msi,nsis'
-            rust-targets: 'aarch64-pc-windows-msvc'
 
     runs-on: ${{ matrix.platform }}
 
@@ -89,6 +81,18 @@ jobs:
       - name: Build frontend
         run: pnpm run build
 
+      - name: Get package version
+        id: version
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+            const version = packageJson.version;
+            console.log(`📏 Version: ${version}`);
+            core.setOutput('version', version);
+            return version;
+
       - name: Build Tauri App
         uses: tauri-apps/tauri-action@v0
         env:
@@ -96,27 +100,6 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: ${{ github.ref_type == 'tag' && github.ref_name || format('v{0}-{1}', fromJson(read_file('./package.json')).version, github.run_number) }}
-          releaseName: ${{ github.ref_type == 'tag' && format('Digital Life {0}', github.ref_name) || format('Digital Life v{0}', fromJson(read_file('./package.json')).version) }}
-          releaseBody: |
-            ## 🚀 Digital Life Release
-            
-            ### 📦 Downloads
-            
-            **macOS (Universal Binary)**
-            - Compatible with Intel and Apple Silicon Macs
-            - Download the `.dmg` file to install
-            
-            **Windows (x64/ARM64)**
-            - Compatible with Windows 10/11
-            - Download the `.msi` installer or `.exe` setup
-            
-            ### 📋 Changes
-            - Build from: `${{ github.ref_name }}`
-            - Build time: ${{ github.event.head_commit.timestamp }}
-            - Commit SHA: ${{ github.sha }}
-          releaseDraft: ${{ github.event.inputs.draft == 'true' }}
-          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') || contains(github.ref_name, 'rc') }}
           args: --target ${{ matrix.target }} --bundles ${{ matrix.bundle }}
 
       - name: Upload Build Artifacts
@@ -128,18 +111,40 @@ jobs:
             src-tauri/target/**/release/bundle/**/*.msi
             src-tauri/target/**/release/bundle/**/*.exe
             src-tauri/target/**/release/bundle/**/*.app.tar.gz
-            src-tauri/target/**/release/bundle/**/*.AppImage
           retention-days: 30
           if-no-files-found: warn
 
-  post-build:
+  create-release:
     needs: build
     runs-on: ubuntu-latest
-    if: always() && (startsWith(github.ref, 'refs/heads/release') || github.ref_type == 'tag')
+    if: always() && needs.build.result == 'success'
     
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Get package version
+        id: version
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+            const version = packageJson.version;
+            
+            let tagName;
+            if (context.ref.startsWith('refs/tags/')) {
+              tagName = context.ref.replace('refs/tags/', '');
+            } else {
+              tagName = `v${version}-build-${context.runNumber}`;
+            }
+            
+            console.log(`📏 Version: ${version}`);
+            console.log(`🏷️ Tag: ${tagName}`);
+            
+            core.setOutput('version', version);
+            core.setOutput('tag_name', tagName);
+            return { version, tagName };
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -156,18 +161,14 @@ jobs:
 
       - name: Organize artifacts
         run: |
-          mkdir -p ./release-files/{macos,windows-x64,windows-arm64}
+          mkdir -p ./release-files/{macos,windows}
           
           # Organize macOS files
           find ./artifacts -name "*.dmg" -exec cp {} ./release-files/macos/ \;
           
-          # Organize Windows x64 files
-          find ./artifacts -path "*x64*" -name "*.msi" -exec cp {} ./release-files/windows-x64/ \;
-          find ./artifacts -path "*x64*" -name "*.exe" -exec cp {} ./release-files/windows-x64/ \;
-          
-          # Organize Windows ARM64 files
-          find ./artifacts -path "*arm64*" -name "*.msi" -exec cp {} ./release-files/windows-arm64/ \;
-          find ./artifacts -path "*arm64*" -name "*.exe" -exec cp {} ./release-files/windows-arm64/ \;
+          # Organize Windows files
+          find ./artifacts -name "*.msi" -exec cp {} ./release-files/windows/ \;
+          find ./artifacts -name "*.exe" -exec cp {} ./release-files/windows/ \;
           
           echo "📁 Organized release files:"
           find ./release-files -type f | sort
@@ -179,22 +180,7 @@ jobs:
           echo "🔐 Generated checksums:"
           cat ../SHA256SUMS.txt
 
-      - name: Get version info
-        id: version
-        run: |
-          if [[ "${{ github.ref_type }}" == "tag" ]]; then
-            VERSION="${{ github.ref_name }}"
-            TAG_NAME="${{ github.ref_name }}"
-          else
-            VERSION=$(node -p "require('./package.json').version")
-            TAG_NAME="v${VERSION}-build-${{ github.run_number }}"
-          fi
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
-          echo "📏 Version: ${VERSION}"
-          echo "🏷️ Tag: ${TAG_NAME}"
-
-      - name: Create or Update Release
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag_name }}
@@ -213,20 +199,14 @@ jobs:
             - ✅ Windows 10/11 x64 supported
             - 📥 Download `.msi` (recommended) or `.exe` installer
             
-            **🪟 Windows (ARM64)**
-            - ✅ Windows 11 ARM64 supported
-            - 📥 Download `.msi` (recommended) or `.exe` installer
-            
             ### 📋 Build Information
             - 🌿 Branch: `${{ github.ref_name }}`
             - ⏰ Build time: ${{ github.event.head_commit.timestamp || github.event.created_at }}
             - 📝 Commit: [`${{ github.sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
             - 🏗️ Build number: `${{ github.run_number }}`
             
-            ### 🔐 Checksums
-            ```
-            ${{ fromJSON(steps.checksums.outputs.content || '{}') }}
-            ```
+            ### 🔐 File Checksums
+            See attached `SHA256SUMS.txt` file for verification.
             
             ---
             
