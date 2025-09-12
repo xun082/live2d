@@ -83,10 +83,15 @@ jobs:
 
       - name: Get package version
         id: version
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "📏 Version: ${VERSION}"
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+            const version = packageJson.version;
+            console.log(`📏 Version: ${version}`);
+            core.setOutput('version', version);
+            return version;
 
       - name: Build Tauri App
         uses: tauri-apps/tauri-action@v0
@@ -120,17 +125,26 @@ jobs:
 
       - name: Get package version
         id: version
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          if [[ "${{ github.ref_type }}" == "tag" ]]; then
-            TAG_NAME="${{ github.ref_name }}"
-          else
-            TAG_NAME="v${VERSION}-build-${{ github.run_number }}"
-          fi
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
-          echo "📏 Version: ${VERSION}"
-          echo "🏷️ Tag: ${TAG_NAME}"
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+            const version = packageJson.version;
+            
+            let tagName;
+            if (context.ref.startsWith('refs/tags/')) {
+              tagName = context.ref.replace('refs/tags/', '');
+            } else {
+              tagName = `v${version}-build-${context.runNumber}`;
+            }
+            
+            console.log(`📏 Version: ${version}`);
+            console.log(`🏷️ Tag: ${tagName}`);
+            
+            core.setOutput('version', version);
+            core.setOutput('tag_name', tagName);
+            return { version, tagName };
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
