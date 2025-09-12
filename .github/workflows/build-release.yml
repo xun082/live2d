@@ -1,0 +1,251 @@
+name: Build Release
+
+on:
+  push:
+    branches:
+      - 'release**'
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release'
+        required: false
+        default: ''
+      draft:
+        description: 'Create as draft release'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest'
+            target: 'universal-apple-darwin'
+            arch: 'universal'
+            bundle: 'dmg'
+            rust-targets: 'aarch64-apple-darwin,x86_64-apple-darwin'
+          - platform: 'windows-latest'
+            target: 'x86_64-pc-windows-msvc'
+            arch: 'x64'
+            bundle: 'msi,nsis'
+            rust-targets: 'x86_64-pc-windows-msvc'
+          - platform: 'windows-latest'
+            target: 'aarch64-pc-windows-msvc'
+            arch: 'arm64'
+            bundle: 'msi,nsis'
+            rust-targets: 'aarch64-pc-windows-msvc'
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-targets }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Switch to Tauri mode
+        run: pnpm run switch:tauri
+
+      - name: Build frontend
+        run: pnpm run build
+
+      - name: Build Tauri App
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_type == 'tag' && github.ref_name || format('v{0}-{1}', fromJson(read_file('./package.json')).version, github.run_number) }}
+          releaseName: ${{ github.ref_type == 'tag' && format('Digital Life {0}', github.ref_name) || format('Digital Life v{0}', fromJson(read_file('./package.json')).version) }}
+          releaseBody: |
+            ## 🚀 Digital Life Release
+            
+            ### 📦 Downloads
+            
+            **macOS (Universal Binary)**
+            - Compatible with Intel and Apple Silicon Macs
+            - Download the `.dmg` file to install
+            
+            **Windows (x64/ARM64)**
+            - Compatible with Windows 10/11
+            - Download the `.msi` installer or `.exe` setup
+            
+            ### 📋 Changes
+            - Build from: `${{ github.ref_name }}`
+            - Build time: ${{ github.event.head_commit.timestamp }}
+            - Commit SHA: ${{ github.sha }}
+          releaseDraft: ${{ github.event.inputs.draft == 'true' }}
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') || contains(github.ref_name, 'rc') }}
+          args: --target ${{ matrix.target }} --bundles ${{ matrix.bundle }}
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform }}-${{ matrix.arch }}-artifacts
+          path: |
+            src-tauri/target/**/release/bundle/**/*.dmg
+            src-tauri/target/**/release/bundle/**/*.msi
+            src-tauri/target/**/release/bundle/**/*.exe
+            src-tauri/target/**/release/bundle/**/*.app.tar.gz
+            src-tauri/target/**/release/bundle/**/*.AppImage
+          retention-days: 30
+          if-no-files-found: warn
+
+  post-build:
+    needs: build
+    runs-on: ubuntu-latest
+    if: always() && (startsWith(github.ref, 'refs/heads/release') || github.ref_type == 'tag')
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Display downloaded artifacts
+        run: |
+          echo "📦 Downloaded artifacts:"
+          find ./artifacts -type f -name "*" | sort
+          echo ""
+          echo "📊 File sizes:"
+          find ./artifacts -type f -exec ls -lh {} \; | awk '{print $5, $9}'
+
+      - name: Organize artifacts
+        run: |
+          mkdir -p ./release-files/{macos,windows-x64,windows-arm64}
+          
+          # Organize macOS files
+          find ./artifacts -name "*.dmg" -exec cp {} ./release-files/macos/ \;
+          
+          # Organize Windows x64 files
+          find ./artifacts -path "*x64*" -name "*.msi" -exec cp {} ./release-files/windows-x64/ \;
+          find ./artifacts -path "*x64*" -name "*.exe" -exec cp {} ./release-files/windows-x64/ \;
+          
+          # Organize Windows ARM64 files
+          find ./artifacts -path "*arm64*" -name "*.msi" -exec cp {} ./release-files/windows-arm64/ \;
+          find ./artifacts -path "*arm64*" -name "*.exe" -exec cp {} ./release-files/windows-arm64/ \;
+          
+          echo "📁 Organized release files:"
+          find ./release-files -type f | sort
+
+      - name: Generate checksums
+        run: |
+          cd ./release-files
+          find . -type f \( -name "*.dmg" -o -name "*.msi" -o -name "*.exe" \) -exec sha256sum {} \; > ../SHA256SUMS.txt
+          echo "🔐 Generated checksums:"
+          cat ../SHA256SUMS.txt
+
+      - name: Get version info
+        id: version
+        run: |
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            VERSION="${{ github.ref_name }}"
+            TAG_NAME="${{ github.ref_name }}"
+          else
+            VERSION=$(node -p "require('./package.json').version")
+            TAG_NAME="v${VERSION}-build-${{ github.run_number }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "📏 Version: ${VERSION}"
+          echo "🏷️ Tag: ${TAG_NAME}"
+
+      - name: Create or Update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag_name }}
+          name: Digital Life ${{ steps.version.outputs.version }}
+          body: |
+            ## 🚀 Digital Life ${{ steps.version.outputs.version }}
+            
+            ### 📦 Downloads
+            
+            **🍎 macOS (Universal Binary)**
+            - ✅ Intel and Apple Silicon Macs supported
+            - 📥 Download the `.dmg` file to install
+            - 🔧 Minimum macOS 10.13 required
+            
+            **🪟 Windows (x64)**
+            - ✅ Windows 10/11 x64 supported
+            - 📥 Download `.msi` (recommended) or `.exe` installer
+            
+            **🪟 Windows (ARM64)**
+            - ✅ Windows 11 ARM64 supported
+            - 📥 Download `.msi` (recommended) or `.exe` installer
+            
+            ### 📋 Build Information
+            - 🌿 Branch: `${{ github.ref_name }}`
+            - ⏰ Build time: ${{ github.event.head_commit.timestamp || github.event.created_at }}
+            - 📝 Commit: [`${{ github.sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+            - 🏗️ Build number: `${{ github.run_number }}`
+            
+            ### 🔐 Checksums
+            ```
+            ${{ fromJSON(steps.checksums.outputs.content || '{}') }}
+            ```
+            
+            ---
+            
+            💡 **Installation Notes:**
+            - On macOS: You may need to allow the app in System Preferences > Security & Privacy
+            - On Windows: SmartScreen may show a warning for unsigned executables
+          draft: ${{ github.event.inputs.draft == 'true' }}
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') || contains(github.ref_name, 'rc') || github.ref_type != 'tag' }}
+          files: |
+            ./release-files/**/*
+            ./SHA256SUMS.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload organized artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ steps.version.outputs.version }}
+          path: |
+            ./release-files/**/*
+            ./SHA256SUMS.txt
+          retention-days: 90
