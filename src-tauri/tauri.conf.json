@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "digital-life",
   "version": "0.1.0",
-  "identifier": "digital-life.leafyee.xyz",
+  "identifier": "com.leafyee.digital-life",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
@@ -54,7 +54,7 @@
       "frameworks": [],
       "minimumSystemVersion": "10.13",
       "exceptionDomain": "",
-      "signingIdentity": null,
+      "signingIdentity": "-",
       "providerShortName": null,
       "entitlements": null
     },

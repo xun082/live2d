@@ -95,6 +95,18 @@ jobs:
       - name: Switch to Tauri mode
         run: pnpm run switch:tauri
 
+      - name: Configure signing for CI
+        run: |
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            echo "✅ macOS 环境：使用临时开发签名"
+            echo "当前 macOS 签名配置："
+            cat src-tauri/tauri.conf.json | grep -A 5 '"macOS"'
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+            echo "✅ Windows 环境：无需签名配置"
+          else
+            echo "✅ Linux 环境：无需签名配置"
+          fi
+
       - name: Build frontend
         run: pnpm run build
 
@@ -114,17 +126,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          args: --target ${{ matrix.target }} --bundles ${{ matrix.bundle }}
+          args: --target ${{ matrix.target }} --bundles ${{ matrix.bundle }} --verbose
 
       - name: Build Tauri App (With Release)
         if: github.event_name != 'pull_request'
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          args: --target ${{ matrix.target }} --bundles ${{ matrix.bundle }}
+          args: --target ${{ matrix.target }} --bundles ${{ matrix.bundle }} --verbose
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
@@ -267,8 +277,28 @@ jobs:
             下载 `SHA256SUMS.txt` 文件来验证文件完整性。
 
             ### 💡 Installation Notes
-            - **macOS**: 首次运行时可能需要在 系统偏好设置 > 安全性与隐私 中允许应用运行
-            - **Windows**: SmartScreen 可能会显示警告，点击"更多信息"然后"仍要运行"
+            
+            **🍎 macOS 安装说明**
+            
+            1. **下载 DMG 文件**：下载对应你 Mac 芯片的版本（ARM64 或 x64）
+            
+            2. **安装应用**：
+               - 双击 DMG 文件打开
+               - 将 digital-life 拖拽到 Applications 文件夹
+            
+            3. **首次运行**：
+               - 按住 Control 键点击应用图标
+               - 选择"打开" → 在弹窗中再次点击"打开"
+               - 或者在"系统偏好设置" → "安全性与隐私"中允许运行
+            
+            4. **如果提示"已损坏"**，在终端运行：
+               ```bash
+               sudo xattr -rd com.apple.quarantine /Applications/digital-life.app
+               ```
+            
+            **🪟 Windows 安装说明**
+            - 推荐下载 MSI 安装包
+            - 如果 SmartScreen 提示警告，点击"更多信息"然后"仍要运行"
 
             ### 📋 Changelog
             查看 [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) 了解详细更新内容。

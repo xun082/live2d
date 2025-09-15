@@ -15,6 +15,7 @@
     "release:push": "git push --follow-tags",
     "switch:tauri": "tsx ./scripts/switch-to-tauri.ts",
     "switch:web": "tsx ./scripts/switch-to-web.ts",
+    "test:build": "echo '请到 GitHub Actions 页面手动触发 Test Build 工作流'",
     "d:tauri": "pnpm run dev:tauri",
     "d:web": "pnpm run dev:web",
     "b:tauri": "pnpm run build:tauri",
