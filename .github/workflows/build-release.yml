@@ -95,17 +95,24 @@ jobs:
       - name: Switch to Tauri mode
         run: pnpm run switch:tauri
 
-      - name: Configure signing for CI
+      - name: Configure signing for CI (macOS)
+        if: runner.os == 'macOS'
         run: |
-          if [ "$RUNNER_OS" == "macOS" ]; then
-            echo "✅ macOS 环境：使用临时开发签名"
-            echo "当前 macOS 签名配置："
-            cat src-tauri/tauri.conf.json | grep -A 5 '"macOS"'
-          elif [ "$RUNNER_OS" == "Windows" ]; then
-            echo "✅ Windows 环境：无需签名配置"
-          else
-            echo "✅ Linux 环境：无需签名配置"
-          fi
+          echo "✅ macOS 环境：使用临时开发签名"
+          echo "当前 macOS 签名配置："
+          cat src-tauri/tauri.conf.json | grep -A 5 '"macOS"' || echo "未找到 macOS 配置"
+
+      - name: Configure signing for CI (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          echo "✅ Windows 环境：无需签名配置"
+          echo "当前平台: Windows"
+
+      - name: Configure signing for CI (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          echo "✅ Linux 环境：无需签名配置"
+          echo "当前平台: Linux"
 
       - name: Build frontend
         run: pnpm run build
