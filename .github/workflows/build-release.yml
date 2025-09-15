@@ -2,13 +2,10 @@ name: Build Release
 
 on:
   push:
-    branches:
-      - 'main'
-    tags:
-      - 'v*.*.*'
+    branches: ['main']
+    tags: ['v*.*.*']
   pull_request:
-    branches:
-      - 'main'
+    branches: ['main']
     types: [opened, synchronize, reopened]
   workflow_dispatch:
     inputs:
@@ -23,22 +20,34 @@ on:
         default: false
         type: boolean
 
+# 给予 GITHUB_TOKEN 写仓库内容的权限，避免 403
+permissions:
+  contents: write
+
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
         include:
-          - platform: 'macos-latest'
-            target: 'universal-apple-darwin'
-            arch: 'universal'
-            bundle: 'dmg'
-            rust-targets: 'aarch64-apple-darwin,x86_64-apple-darwin'
-          - platform: 'windows-latest'
-            target: 'x86_64-pc-windows-msvc'
-            arch: 'x64'
-            bundle: 'msi,nsis'
-            rust-targets: 'x86_64-pc-windows-msvc'
+          # macOS arm64
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+            arch: arm64
+            bundle: dmg
+            rust-targets: aarch64-apple-darwin
+          # macOS x64
+          - platform: macos-latest
+            target: x86_64-apple-darwin
+            arch: x64
+            bundle: dmg
+            rust-targets: x86_64-apple-darwin
+          # Windows x64
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+            arch: x64
+            bundle: msi,nsis
+            rust-targets: x86_64-pc-windows-msvc
 
     runs-on: ${{ matrix.platform }}
 
@@ -95,9 +104,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
-            const version = packageJson.version;
-            console.log(`📏 Version: ${version}`);
+            const version = JSON.parse(fs.readFileSync('./package.json','utf8')).version;
             core.setOutput('version', version);
             return version;
 
@@ -134,15 +141,14 @@ jobs:
   create-release:
     needs: build
     runs-on: ubuntu-latest
-    # 只有在非 PR 情况下才创建 Release
     if: >
-      always() && 
-      needs.build.result == 'success' && 
+      always() &&
+      needs.build.result == 'success' &&
       github.event_name != 'pull_request' &&
-      (github.ref == 'refs/heads/main' || 
-       startsWith(github.ref, 'refs/tags/') || 
+      (github.ref == 'refs/heads/main' ||
+       startsWith(github.ref, 'refs/tags/') ||
        github.event.inputs.create_release == 'true')
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -153,35 +159,20 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
-            const version = packageJson.version;
-            
-            let tagName;
-            let isPrerelease = false;
-            
+            const version = JSON.parse(fs.readFileSync('./package.json','utf8')).version;
+            let tagName, isPrerelease = false;
             if (context.ref.startsWith('refs/tags/')) {
-              // 来自标签推送
-              tagName = context.ref.replace('refs/tags/', '');
-              isPrerelease = tagName.includes('beta') || tagName.includes('alpha') || tagName.includes('rc');
+              tagName = context.ref.replace('refs/tags/','');
+              isPrerelease = /beta|alpha|rc/i.test(tagName);
             } else if (context.ref === 'refs/heads/main') {
-              // 来自 main 分支推送
               tagName = `v${version}`;
-              isPrerelease = false;
             } else {
-              // 手动触发或其他情况
               tagName = `v${version}-build-${context.runNumber}`;
               isPrerelease = true;
             }
-            
-            console.log(`📏 Version: ${version}`);
-            console.log(`🏷️ Tag: ${tagName}`);
-            console.log(`🚧 Is Prerelease: ${isPrerelease}`);
-            
             core.setOutput('version', version);
             core.setOutput('tag_name', tagName);
             core.setOutput('is_prerelease', isPrerelease);
-            
-            return { version, tagName, isPrerelease };
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -196,17 +187,27 @@ jobs:
           echo "📊 File sizes:"
           find ./artifacts -type f -exec ls -lh {} \; | awk '{print $5, $9}'
 
-      - name: Organize artifacts
+      - name: Organize & rename artifacts
         run: |
+          set -e
+          VERSION='${{ steps.version.outputs.version }}'
           mkdir -p ./release-files/{macos,windows}
-          
-          # Organize macOS files
-          find ./artifacts -name "*.dmg" -exec cp {} ./release-files/macos/ \;
-          
-          # Organize Windows files
+
+          # macOS: 将 arm64 / x64 分开并重命名
+          ARM_DMG=$(find ./artifacts -name "*.dmg" -path "*apple-darwin*/**" -o -name "*_aarch64*.dmg" | head -n 1 || true)
+          X64_DMG=$(find ./artifacts -name "*.dmg" -path "*x86_64-apple-darwin*/**" -o -name "*_x64*.dmg" | head -n 1 || true)
+
+          if [ -n "$ARM_DMG" ]; then
+            cp "$ARM_DMG" "./release-files/macos/digital-life_${VERSION}_mac_arm64.dmg"
+          fi
+          if [ -n "$X64_DMG" ]; then
+            cp "$X64_DMG" "./release-files/macos/digital-life_${VERSION}_mac_x64.dmg"
+          fi
+
+          # Windows
           find ./artifacts -name "*.msi" -exec cp {} ./release-files/windows/ \;
           find ./artifacts -name "*.exe" -exec cp {} ./release-files/windows/ \;
-          
+
           echo "📁 Organized release files:"
           find ./release-files -type f | sort
 
@@ -224,87 +225,8 @@ jobs:
           name: Digital Life ${{ steps.version.outputs.version }}
           body: |
             ## 🚀 Digital Life ${{ steps.version.outputs.version }}
-            
+
             ### 📦 Downloads
-            
-            **🍎 macOS (Universal Binary)**
-            - ✅ Intel and Apple Silicon Macs supported
-            - 📥 Download the `.dmg` file to install
-            - 🔧 Minimum macOS 10.13 required
-            
-            **🪟 Windows (x64)**
-            - ✅ Windows 10/11 x64 supported
-            - 📥 Download `.msi` (recommended) or `.exe` installer
-            
-            ### 📋 Build Information
-            - 🌿 Branch: `${{ github.ref_name }}`
-            - ⏰ Build time: ${{ github.event.head_commit.timestamp || github.event.created_at }}
-            - 📝 Commit: [`${{ github.sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
-            - 🏗️ Build number: `${{ github.run_number }}`
-            
-            ### 🔐 File Verification
-            See attached `SHA256SUMS.txt` file for checksums.
-            
-            ---
-            
-            💡 **Installation Notes:**
-            - On macOS: You may need to allow the app in System Preferences > Security & Privacy
-            - On Windows: SmartScreen may show a warning for unsigned executables
-            
-            ### 📋 Changelog
-            
-            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for detailed changes.
-          draft: ${{ github.event.inputs.draft == 'true' }}
-          prerelease: ${{ steps.version.outputs.is_prerelease == 'true' }}
-          files: |
-            ./release-files/**/*
-            ./SHA256SUMS.txt
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload organized artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-${{ steps.version.outputs.version }}
-          path: |
-            ./release-files/**/*
-            ./SHA256SUMS.txt
-          retention-days: 90
-
-  # 为 PR 提供构建状态反馈
-  pr-summary:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && always()
-    
-    steps:
-      - name: PR Build Summary
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const buildResult = '${{ needs.build.result }}';
-            const success = buildResult === 'success';
-            
-            const summary = success 
-              ? '✅ **Build Successful** - All platforms built successfully!'
-              : '❌ **Build Failed** - Check the build logs for details.';
-            
-            const details = `
-            ## 🏗️ Build Summary
-            
-            ${summary}
-            
-            ### 📦 Platforms Built
-            - 🍎 macOS (Universal Binary)
-            - 🪟 Windows (x64)
-            
-            ### 📋 Next Steps
-            ${success 
-              ? '- Merge this PR to trigger a release build\n- The release will be created automatically after merge' 
-              : '- Fix the build errors and push again\n- Check the Actions tab for detailed error logs'
-            }
-            `;
-            
-            console.log(details);
-            core.summary.addRaw(details);
-            await core.summary.write();
+            **🍎 macOS**
+            - Apple Silicon (arm64): `digital-life_${{ steps.version.outputs.version }}_mac_arm64.dmg`
