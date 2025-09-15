@@ -194,21 +194,42 @@ jobs:
           mkdir -p ./release-files/{macos,windows}
 
           # macOS: 将 arm64 / x64 分开并重命名
-          ARM_DMG=$(find ./artifacts -name "*.dmg" -path "*apple-darwin*/**" -o -name "*_aarch64*.dmg" | head -n 1 || true)
-          X64_DMG=$(find ./artifacts -name "*.dmg" -path "*x86_64-apple-darwin*/**" -o -name "*_x64*.dmg" | head -n 1 || true)
+          ARM_DMG=$(find ./artifacts -name "*.dmg" -path "*arm64*" | head -n 1 || echo "")
+          X64_DMG=$(find ./artifacts -name "*.dmg" -path "*x64*" | head -n 1 || echo "")
 
-          if [ -n "$ARM_DMG" ]; then
+          if [ -n "$ARM_DMG" ] && [ -f "$ARM_DMG" ]; then
             cp "$ARM_DMG" "./release-files/macos/digital-life_${VERSION}_mac_arm64.dmg"
+            echo "✅ Found ARM64 DMG: $ARM_DMG"
+          else
+            echo "⚠️ ARM64 DMG not found"
           fi
-          if [ -n "$X64_DMG" ]; then
+          
+          if [ -n "$X64_DMG" ] && [ -f "$X64_DMG" ]; then
             cp "$X64_DMG" "./release-files/macos/digital-life_${VERSION}_mac_x64.dmg"
+            echo "✅ Found X64 DMG: $X64_DMG"
+          else
+            echo "⚠️ X64 DMG not found"
           fi
 
-          # Windows
-          find ./artifacts -name "*.msi" -exec cp {} ./release-files/windows/ \;
-          find ./artifacts -name "*.exe" -exec cp {} ./release-files/windows/ \;
+          # Windows files
+          WIN_MSI=$(find ./artifacts -name "*.msi" | head -n 1 || echo "")
+          WIN_EXE=$(find ./artifacts -name "*.exe" | head -n 1 || echo "")
+          
+          if [ -n "$WIN_MSI" ] && [ -f "$WIN_MSI" ]; then
+            cp "$WIN_MSI" "./release-files/windows/digital-life_${VERSION}_windows_x64.msi"
+            echo "✅ Found Windows MSI: $WIN_MSI"
+          else
+            echo "⚠️ Windows MSI not found"
+          fi
+          
+          if [ -n "$WIN_EXE" ] && [ -f "$WIN_EXE" ]; then
+            cp "$WIN_EXE" "./release-files/windows/digital-life_${VERSION}_windows_x64.exe"
+            echo "✅ Found Windows EXE: $WIN_EXE"
+          else
+            echo "⚠️ Windows EXE not found"
+          fi
 
-          echo "📁 Organized release files:"
+          echo "📁 Final organized release files:"
           find ./release-files -type f | sort
 
       - name: Generate checksums
@@ -229,4 +250,79 @@ jobs:
             ### 📦 Downloads
 
             **🍎 macOS**
-            - Apple Silicon (arm64): `digital-life_${{ steps.version.outputs.version }}_mac_arm64.dmg`
+            - Apple Silicon (ARM64): `digital-life_${{ steps.version.outputs.version }}_mac_arm64.dmg`
+            - Intel (x64): `digital-life_${{ steps.version.outputs.version }}_mac_x64.dmg`
+
+            **🪟 Windows (x64)**
+            - MSI Installer (推荐): `digital-life_${{ steps.version.outputs.version }}_windows_x64.msi`
+            - EXE Setup: `digital-life_${{ steps.version.outputs.version }}_windows_x64.exe`
+
+            ### 📋 Build Information
+            - 🌿 Branch: `${{ github.ref_name }}`
+            - ⏰ Build time: ${{ github.event.head_commit.timestamp || github.event.created_at }}
+            - 📝 Commit: [`${{ github.sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+            - 🏗️ Build number: `${{ github.run_number }}`
+
+            ### 🔐 File Verification
+            下载 `SHA256SUMS.txt` 文件来验证文件完整性。
+
+            ### 💡 Installation Notes
+            - **macOS**: 首次运行时可能需要在 系统偏好设置 > 安全性与隐私 中允许应用运行
+            - **Windows**: SmartScreen 可能会显示警告，点击"更多信息"然后"仍要运行"
+
+            ### 📋 Changelog
+            查看 [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) 了解详细更新内容。
+          draft: ${{ github.event.inputs.draft == 'true' }}
+          prerelease: ${{ steps.version.outputs.is_prerelease == 'true' }}
+          files: |
+            ./release-files/**/*
+            ./SHA256SUMS.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload organized artifacts for backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ steps.version.outputs.version }}
+          path: |
+            ./release-files/**/*
+            ./SHA256SUMS.txt
+          retention-days: 90
+
+  # 为 PR 提供构建状态反馈
+  pr-summary:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && always()
+    
+    steps:
+      - name: PR Build Summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const buildResult = '${{ needs.build.result }}';
+            const success = buildResult === 'success';
+            
+            const summary = success 
+              ? '✅ **Build Successful** - All platforms built successfully!'
+              : '❌ **Build Failed** - Check the build logs for details.';
+            
+            const details = `
+            ## 🏗️ Build Summary
+            
+            ${summary}
+            
+            ### 📦 Platforms Built
+            - 🍎 macOS (ARM64 + x64)
+            - 🪟 Windows (x64)
+            
+            ### 📋 Next Steps
+            ${success 
+              ? '- Merge this PR to trigger a release build\n- The release will be created automatically after merge' 
+              : '- Fix the build errors and push again\n- Check the Actions tab for detailed error logs'
+            }
+            `;
+            
+            console.log(details);
+            core.summary.addRaw(details);
+            await core.summary.write();
