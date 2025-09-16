@@ -281,7 +281,6 @@ export default function ConfigUpdaterPage() {
                   />
                 </div>
 
-                {/* 检查间隔 */}
                 {settings.autoCheck && (
                   <div className={`${isMobile ? "space-y-2" : "space-y-3"}`}>
                     <Label
@@ -289,7 +288,7 @@ export default function ConfigUpdaterPage() {
                         isMobile ? "text-xs" : "text-sm"
                       }`}
                     >
-                      检查间隔
+                      检查间隔1111
                     </Label>
                     <Select
                       value={settings.checkInterval.toString()}
@@ -426,4 +425,3 @@ export default function ConfigUpdaterPage() {
     </div>
   );
 }
-
