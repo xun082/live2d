@@ -28,19 +28,162 @@ import { useResponsive } from "../../../hooks/useResponsive";
 
 export default function ConfigLayoutPage() {
   const { screenType, isMobile } = useResponsive();
-  const setLoadLive2d = useLive2dApi((state) => state.setLoadLive2d);
-  const live2dList = useLive2dApi((state) => state.live2dList);
-  const live2dName = useLive2dApi((state) => state.live2dName);
-  const setBackground = useLive2dApi((state) => state.setBackground);
-  const isFullScreen = useLive2dApi((state) => state.isFullScreen);
-  const setIsFullScreen = useLive2dApi((state) => state.setIsFullScreen);
-  const live2dPositionY = useLive2dApi((state) => state.live2dPositionY);
-  const setLive2dPositionY = useLive2dApi((state) => state.setLive2dPositionY);
-  const live2dPositionX = useLive2dApi((state) => state.live2dPositionX);
-  const setLive2dPositionX = useLive2dApi((state) => state.setLive2dPositionX);
-  const live2dScale = useLive2dApi((state) => state.live2dScale);
-  const setLive2dScale = useLive2dApi((state) => state.setLive2dScale);
+  const {
+    setLoadLive2d,
+    live2dList,
+    live2dName,
+    setBackground,
+    isFullScreen,
+    setIsFullScreen,
+    live2dPositionY,
+    setLive2dPositionY,
+    live2dPositionX,
+    setLive2dPositionX,
+    live2dScale,
+    setLive2dScale,
+  } = useLive2dApi();
+
   const selfName = "小助手";
+
+  // 响应式样式工具函数
+  const getSpacing = () => ({
+    container: isMobile
+      ? "px-2 py-3"
+      : screenType === "tablet"
+      ? "px-3 py-4"
+      : "px-4 py-5",
+    card: isMobile
+      ? "p-3 pb-2"
+      : screenType === "tablet"
+      ? "p-4 pb-3"
+      : "p-6 pb-4",
+    content: isMobile
+      ? "p-3 space-y-3"
+      : screenType === "tablet"
+      ? "p-4 space-y-4"
+      : "p-6 space-y-6",
+    section: isMobile
+      ? "space-y-3"
+      : screenType === "tablet"
+      ? "space-y-4"
+      : "space-y-6",
+    item: isMobile ? "space-y-2" : "space-y-3",
+    control: isMobile
+      ? "space-y-2"
+      : screenType === "tablet"
+      ? "space-y-3"
+      : "space-y-4",
+  });
+
+  const getTextSize = () => ({
+    title: isMobile
+      ? "text-xl"
+      : screenType === "tablet"
+      ? "text-2xl"
+      : "text-3xl",
+    subtitle: isMobile
+      ? "text-xs"
+      : screenType === "tablet"
+      ? "text-sm"
+      : "text-base",
+    cardTitle: isMobile
+      ? "text-base"
+      : screenType === "tablet"
+      ? "text-lg"
+      : "text-xl",
+    sectionTitle: isMobile ? "text-base" : "text-lg",
+    label: isMobile ? "text-xs" : "text-sm",
+  });
+
+  const getInputSize = () => ({
+    height: isMobile ? "h-10" : "h-11",
+    iconSize: isMobile ? "h-4 w-4" : "h-5 w-5",
+  });
+
+  const styles = {
+    spacing: getSpacing(),
+    text: getTextSize(),
+    input: getInputSize(),
+  };
+
+  // 可复用的标签组件
+  const SectionTitle = ({
+    icon: Icon,
+    children,
+    color = "text-gray-800",
+  }: {
+    icon?: React.ComponentType<any>;
+    children: React.ReactNode;
+    color?: string;
+  }) => (
+    <h3
+      className={`font-semibold ${color} border-b border-gray-200 pb-2 ${styles.text.sectionTitle}`}
+    >
+      {Icon && <Icon className="inline-block w-4 h-4 mr-2" />}
+      {children}
+    </h3>
+  );
+
+  const ConfigLabel = ({
+    icon: Icon,
+    children,
+    color = "text-gray-600",
+  }: {
+    icon?: React.ComponentType<any>;
+    children: React.ReactNode;
+    color?: string;
+  }) => (
+    <Label
+      className={`font-semibold flex items-center gap-2 ${styles.text.label}`}
+    >
+      {Icon && <Icon className={`h-4 w-4 ${color}`} />}
+      {children}
+    </Label>
+  );
+
+  const SliderControl = ({
+    id,
+    value,
+    onChange,
+    min,
+    max,
+    step,
+    color,
+    leftLabel,
+    rightLabel,
+    currentValue,
+  }: {
+    id: string;
+    value: number;
+    onChange: (value: number) => void;
+    min: number;
+    max: number;
+    step: number;
+    color: "blue" | "purple" | "orange" | "green" | "red" | "gray";
+    leftLabel: string;
+    rightLabel: string;
+    currentValue: string;
+  }) => (
+    <div className="relative">
+      <Slider
+        id={id}
+        min={min}
+        max={max}
+        step={step}
+        value={[value]}
+        onValueChange={(val: number[]) => onChange(val[0])}
+        variant="gradient"
+        color={color}
+        size="md"
+        className="w-full"
+      />
+      <div className="flex justify-between text-xs text-gray-500 mt-2">
+        <span>{leftLabel}</span>
+        <span className={`font-medium text-${color}-600`}>{currentValue}</span>
+        <span>{rightLabel}</span>
+      </div>
+    </div>
+  );
 
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -83,121 +226,42 @@ export default function ConfigLayoutPage() {
   return (
     <div className="w-full h-full flex flex-col overflow-hidden">
       <div
-        className={`
-        flex-1 overflow-y-auto scroll-smooth
-        ${
-          isMobile
-            ? "px-2 py-3"
-            : screenType === "tablet"
-            ? "px-3 py-4"
-            : "px-4 py-5"
-        }
-      `}
+        className={`flex-1 overflow-y-auto scroll-smooth ${styles.spacing.container}`}
       >
-        <div
-          className={`
-          mx-auto space-y-4
-          ${screenType === "mobile" ? "max-w-full" : ""}
-          ${screenType === "tablet" ? "max-w-full" : ""}
-          ${screenType === "desktop-sm" ? "max-w-full" : ""}
-          ${screenType === "desktop-md" ? "max-w-full" : ""}
-          ${screenType === "desktop-lg" ? "max-w-full" : ""}
-        `}
-        >
+        <div className="mx-auto space-y-4 max-w-full">
           {/* Header */}
           <div className="text-center space-y-2">
             <h1
-              className={`
-              font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent
-              ${
-                isMobile
-                  ? "text-xl"
-                  : screenType === "tablet"
-                  ? "text-2xl"
-                  : "text-3xl"
-              }
-            `}
+              className={`font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent ${styles.text.title}`}
             >
               布局配置
             </h1>
-            <p
-              className={`
-              text-muted-foreground
-              ${
-                isMobile
-                  ? "text-xs"
-                  : screenType === "tablet"
-                  ? "text-sm"
-                  : "text-base"
-              }
-            `}
-            >
+            <p className={`text-muted-foreground ${styles.text.subtitle}`}>
               自定义聊天形象和界面布局设置
             </p>
           </div>
 
           {/* Main Configuration Card */}
           <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50/50">
-            <CardHeader
-              className={`${
-                isMobile
-                  ? "p-3 pb-2"
-                  : screenType === "tablet"
-                  ? "p-4 pb-3"
-                  : "p-6 pb-4"
-              }`}
-            >
+            <CardHeader className={styles.spacing.card}>
               <CardTitle
-                className={`
-                flex items-center gap-2
-                ${
-                  isMobile
-                    ? "text-base"
-                    : screenType === "tablet"
-                    ? "text-lg"
-                    : "text-xl"
-                }
-              `}
+                className={`flex items-center gap-2 ${styles.text.cardTitle}`}
               >
                 <Settings
-                  className={`text-blue-600 ${
-                    isMobile ? "h-4 w-4" : "h-5 w-5"
-                  }`}
+                  className={`text-blue-600 ${styles.input.iconSize}`}
                 />
                 基础配置
               </CardTitle>
             </CardHeader>
-            <CardContent
-              className={`${
-                isMobile
-                  ? "p-3 space-y-3"
-                  : screenType === "tablet"
-                  ? "p-4 space-y-4"
-                  : "p-6 space-y-6"
-              }`}
-            >
+            <CardContent className={styles.spacing.content}>
               {/* Character Selection */}
-              <div className={`${isMobile ? "space-y-2" : "space-y-3"}`}>
-                <Label
-                  htmlFor="live2d-model"
-                  className={`font-semibold flex items-center gap-2 ${
-                    isMobile ? "text-xs" : "text-sm"
-                  }`}
-                >
-                  <User className="h-4 w-4 text-green-600" />
+              <div className={styles.spacing.item}>
+                <ConfigLabel icon={User} color="text-green-600">
                   聊天形象
-                </Label>
-                <Select
-                  value={live2dName}
-                  onValueChange={async (value: string) => {
-                    await setLoadLive2d(value);
-                  }}
-                >
+                </ConfigLabel>
+                <Select value={live2dName} onValueChange={setLoadLive2d}>
                   <SelectTrigger
-                    className={`
-                border-2 focus:border-green-500 transition-colors
-                ${isMobile ? "h-10 text-sm" : "h-11"}
-              `}
+                    className={`border-2 focus:border-green-500 transition-colors ${styles.input.height}`}
                   >
                     <SelectValue placeholder="选择聊天形象" />
                   </SelectTrigger>
@@ -212,47 +276,13 @@ export default function ConfigLayoutPage() {
               </div>
 
               {/* Position and Scale Section */}
-              <div
-                className={`${
-                  isMobile
-                    ? "space-y-3"
-                    : screenType === "tablet"
-                    ? "space-y-4"
-                    : "space-y-6"
-                }`}
-              >
-                <h3
-                  className={`
-              font-semibold text-gray-800 border-b border-gray-200 pb-2
-              ${isMobile ? "text-base" : "text-lg"}
-            `}
-                >
-                  位置与缩放
-                </h3>
+              <div className={styles.spacing.section}>
+                <SectionTitle>位置与缩放</SectionTitle>
 
-                <div
-                  className={`
-              grid gap-6
-              ${isMobile ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-2"}
-            `}
-                >
+                <div className="grid gap-6 grid-cols-1">
                   {/* Vertical Position */}
-                  <div
-                    className={`${
-                      isMobile
-                        ? "space-y-2"
-                        : screenType === "tablet"
-                        ? "space-y-3"
-                        : "space-y-4"
-                    }`}
-                  >
-                    <Label
-                      htmlFor="position-y"
-                      className={`font-semibold flex items-center gap-2 ${
-                        isMobile ? "text-xs" : "text-sm"
-                      }`}
-                    >
-                      <Move className="h-4 w-4 text-blue-600" />
+                  <div className={styles.spacing.control}>
+                    <ConfigLabel icon={Move} color="text-blue-600">
                       模型垂直位置
                       {live2dPositionY === 0
                         ? ""
@@ -261,49 +291,24 @@ export default function ConfigLayoutPage() {
                               ? `向下偏移${live2dPositionY}像素`
                               : `向上偏移${-live2dPositionY}像素`
                           }]`}
-                    </Label>
-                    <div className="relative">
-                      <Slider
-                        id="position-y"
-                        min={-300}
-                        max={300}
-                        step={5}
-                        value={[live2dPositionY]}
-                        onValueChange={(value: number[]) => {
-                          setLive2dPositionY(value[0]);
-                        }}
-                        variant="gradient"
-                        color="blue"
-                        size="md"
-                        className="w-full"
-                      />
-                      <div className="flex justify-between text-xs text-gray-500 mt-2">
-                        <span>向上 300px</span>
-                        <span className="font-medium text-blue-600">
-                          {live2dPositionY}px
-                        </span>
-                        <span>向下 300px</span>
-                      </div>
-                    </div>
+                    </ConfigLabel>
+                    <SliderControl
+                      id="position-y"
+                      value={live2dPositionY}
+                      onChange={setLive2dPositionY}
+                      min={-300}
+                      max={300}
+                      step={5}
+                      color="blue"
+                      leftLabel="向上 300px"
+                      rightLabel="向下 300px"
+                      currentValue={`${live2dPositionY}px`}
+                    />
                   </div>
 
                   {/* Horizontal Position */}
-                  <div
-                    className={`${
-                      isMobile
-                        ? "space-y-2"
-                        : screenType === "tablet"
-                        ? "space-y-3"
-                        : "space-y-4"
-                    }`}
-                  >
-                    <Label
-                      htmlFor="position-x"
-                      className={`font-semibold flex items-center gap-2 ${
-                        isMobile ? "text-xs" : "text-sm"
-                      }`}
-                    >
-                      <Move className="h-4 w-4 text-purple-600" />
+                  <div className={styles.spacing.control}>
+                    <ConfigLabel icon={Move} color="text-purple-600">
                       模型水平位置
                       {live2dPositionX === 0
                         ? ""
@@ -312,119 +317,55 @@ export default function ConfigLayoutPage() {
                               ? `向右偏移${live2dPositionX}像素`
                               : `向左偏移${-live2dPositionX}像素`
                           }]`}
-                    </Label>
-                    <div className="relative">
-                      <Slider
-                        id="position-x"
-                        min={-600}
-                        max={600}
-                        step={10}
-                        value={[live2dPositionX]}
-                        onValueChange={(value: number[]) => {
-                          setLive2dPositionX(value[0]);
-                        }}
-                        variant="gradient"
-                        color="purple"
-                        size="md"
-                        className="w-full"
-                      />
-                      <div className="flex justify-between text-xs text-gray-500 mt-2">
-                        <span>向左 600px</span>
-                        <span className="font-medium text-purple-600">
-                          {live2dPositionX}px
-                        </span>
-                        <span>向右 600px</span>
-                      </div>
-                    </div>
+                    </ConfigLabel>
+                    <SliderControl
+                      id="position-x"
+                      value={live2dPositionX}
+                      onChange={setLive2dPositionX}
+                      min={-600}
+                      max={600}
+                      step={10}
+                      color="purple"
+                      leftLabel="向左 600px"
+                      rightLabel="向右 600px"
+                      currentValue={`${live2dPositionX}px`}
+                    />
                   </div>
                 </div>
 
                 {/* Scale */}
-                <div
-                  className={`${
-                    isMobile
-                      ? "space-y-2"
-                      : screenType === "tablet"
-                      ? "space-y-3"
-                      : "space-y-4"
-                  }`}
-                >
-                  <Label
-                    htmlFor="scale"
-                    className={`font-semibold flex items-center gap-2 ${
-                      isMobile ? "text-xs" : "text-sm"
-                    }`}
-                  >
-                    <Maximize2 className="h-4 w-4 text-orange-600" />
+                <div className={styles.spacing.control}>
+                  <ConfigLabel icon={Maximize2} color="text-orange-600">
                     模型缩放
                     {live2dScale === 1
                       ? ""
                       : ` [${(live2dScale * 100).toFixed(0)}%]`}
-                  </Label>
-                  <div className="relative">
-                    <Slider
-                      id="scale"
-                      min={0.5}
-                      max={3.0}
-                      step={0.1}
-                      value={[live2dScale]}
-                      onValueChange={(value: number[]) => {
-                        setLive2dScale(value[0]);
-                      }}
-                      variant="gradient"
-                      color="orange"
-                      size="md"
-                      className="w-full"
-                    />
-                    <div className="flex justify-between text-xs text-gray-500 mt-2">
-                      <span>50%</span>
-                      <span className="font-medium text-orange-600">
-                        {(live2dScale * 100).toFixed(0)}%
-                      </span>
-                      <span>300%</span>
-                    </div>
-                  </div>
+                  </ConfigLabel>
+                  <SliderControl
+                    id="scale"
+                    value={live2dScale}
+                    onChange={setLive2dScale}
+                    min={0.5}
+                    max={3.0}
+                    step={0.1}
+                    color="orange"
+                    leftLabel="50%"
+                    rightLabel="300%"
+                    currentValue={`${(live2dScale * 100).toFixed(0)}%`}
+                  />
                 </div>
               </div>
 
               {/* Background Section */}
-              <div
-                className={`${
-                  isMobile
-                    ? "space-y-3"
-                    : screenType === "tablet"
-                    ? "space-y-4"
-                    : "space-y-6"
-                }`}
-              >
-                <h3
-                  className={`
-              font-semibold text-gray-800 border-b border-gray-200 pb-2
-              ${isMobile ? "text-base" : "text-lg"}
-            `}
-                >
-                  背景设置
-                </h3>
+              <div className={styles.spacing.section}>
+                <SectionTitle>背景设置</SectionTitle>
 
-                <div
-                  className={`${
-                    isMobile
-                      ? "space-y-2"
-                      : screenType === "tablet"
-                      ? "space-y-3"
-                      : "space-y-4"
-                  }`}
-                >
+                <div className={styles.spacing.control}>
                   {/* Background Upload */}
                   <div className="space-y-3">
-                    <Label
-                      className={`font-semibold flex items-center gap-2 ${
-                        isMobile ? "text-xs" : "text-sm"
-                      }`}
-                    >
-                      <Upload className="h-4 w-4 text-indigo-600" />
+                    <ConfigLabel icon={Upload} color="text-indigo-600">
                       背景图片
-                    </Label>
+                    </ConfigLabel>
                     <div className="w-full">
                       <Input
                         type="file"
@@ -466,26 +407,17 @@ export default function ConfigLayoutPage() {
 
                   {/* Background Display Area */}
                   <div className="space-y-3">
-                    <Label
-                      htmlFor="background-display"
-                      className={`font-semibold flex items-center gap-2 ${
-                        isMobile ? "text-xs" : "text-sm"
-                      }`}
-                    >
-                      <Monitor className="h-4 w-4 text-teal-600" />
+                    <ConfigLabel icon={Monitor} color="text-teal-600">
                       背景图片显示区域
-                    </Label>
+                    </ConfigLabel>
                     <Select
                       value={isFullScreen.toString()}
-                      onValueChange={async (value: string) => {
-                        await setIsFullScreen(value === "true");
-                      }}
+                      onValueChange={(value: string) =>
+                        setIsFullScreen(value === "true")
+                      }
                     >
                       <SelectTrigger
-                        className={`
-                    border-2 focus:border-teal-500 transition-colors
-                    ${isMobile ? "h-10 text-sm" : "h-11"}
-                  `}
+                        className={`border-2 focus:border-teal-500 transition-colors ${styles.input.height}`}
                       >
                         <SelectValue placeholder="选择显示区域" />
                       </SelectTrigger>

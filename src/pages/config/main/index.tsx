@@ -22,12 +22,14 @@ import { useResponsive } from "../../../hooks/useResponsive";
 
 export default function ConfigMainPage() {
   const { screenType, isMobile } = useResponsive();
-  const openaiEndpoint = useChatApi((state) => state.openaiEndpoint);
-  const openaiApiKey = useChatApi((state) => state.openaiApiKey);
-  const openaiModelName = useChatApi((state) => state.openaiModelName);
-  const setOpenaiEndpoint = useChatApi((state) => state.setOpenaiEndpoint);
-  const setOpenaiApiKey = useChatApi((state) => state.setOpenaiApiKey);
-  const setOpenaiModelName = useChatApi((state) => state.setOpenaiModelName);
+  const {
+    openaiEndpoint,
+    openaiApiKey,
+    openaiModelName,
+    setOpenaiEndpoint,
+    setOpenaiApiKey,
+    setOpenaiModelName,
+  } = useChatApi();
 
   // Form state management
   const [endpointValue, setEndpointValue] = useState(openaiEndpoint);
@@ -43,250 +45,251 @@ export default function ConfigMainPage() {
   useEffect(() => setApiKeyValue(openaiApiKey), [openaiApiKey]);
   useEffect(() => setModelNameValue(openaiModelName), [openaiModelName]);
 
+  // 响应式样式工具函数
+  const getSpacing = () => ({
+    container: isMobile ? "px-4 py-4" : "px-6 py-6",
+    card: isMobile ? "pb-4" : "pb-6",
+    content: isMobile ? "space-y-6" : "space-y-8",
+    section: "space-y-4",
+    inputGroup: "flex gap-3",
+  });
+
+  const getTextSize = () => ({
+    title: isMobile ? "text-2xl" : "text-3xl",
+    subtitle: isMobile ? "text-sm" : "text-base",
+    cardTitle: isMobile ? "text-lg" : "text-xl",
+    label: "text-sm",
+  });
+
+  const getInputSize = () => ({
+    height: "h-11",
+    iconSize: isMobile ? "h-4 w-4" : "h-5 w-5",
+    buttonSize: "h-11 w-11",
+  });
+
+  const getMaxWidth = () => {
+    switch (screenType) {
+      case "mobile":
+        return "max-w-sm";
+      case "tablet":
+        return "max-w-2xl";
+      case "desktop-sm":
+        return "max-w-3xl";
+      case "desktop-md":
+        return "max-w-4xl";
+      case "desktop-lg":
+        return "max-w-5xl";
+      default:
+        return "max-w-full";
+    }
+  };
+
+  const styles = {
+    spacing: getSpacing(),
+    text: getTextSize(),
+    input: getInputSize(),
+    maxWidth: getMaxWidth(),
+  };
+
+  // 可复用的配置项组件
+  const ConfigItem = ({
+    icon: Icon,
+    label,
+    badge,
+    value,
+    onChange,
+    placeholder,
+    type = "text",
+    color,
+    isModified,
+    onReset,
+    onSave,
+  }: {
+    icon: React.ComponentType<any>;
+    label: string;
+    badge: string;
+    value: string;
+    onChange: (value: string) => void;
+    placeholder: string;
+    type?: string;
+    color: string;
+    isModified: boolean;
+    onReset: () => void;
+    onSave: () => void;
+  }) => (
+    <div className={styles.spacing.section}>
+      <Label
+        className={`${styles.text.label} font-semibold flex items-center gap-2`}
+      >
+        <Icon className={`h-4 w-4 text-${color}-600`} />
+        {label}
+        <Badge variant="secondary" className="ml-2">
+          {badge}
+        </Badge>
+      </Label>
+      <div className={styles.spacing.inputGroup}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className={`${styles.input.buttonSize} border-2 hover:bg-gray-50 transition-all duration-200`}
+              onClick={onReset}
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>恢复默认值</p>
+          </TooltipContent>
+        </Tooltip>
+        <Input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className={`flex-1 ${styles.input.height} border-2 focus:border-${color}-500 transition-colors`}
+        />
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant={isModified ? "default" : "outline"}
+              size="icon"
+              className={`${
+                styles.input.buttonSize
+              } transition-all duration-200 ${
+                isModified
+                  ? `bg-gradient-to-r from-${color}-600 to-${color}-700 hover:from-${color}-700 hover:to-${color}-800 text-white shadow-lg hover:shadow-xl`
+                  : "border-2 hover:bg-gray-50"
+              }`}
+              onClick={onSave}
+            >
+              <Save className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>保存修改</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+    </div>
+  );
+
   return (
     <div className="w-full h-full flex flex-col overflow-hidden">
-      <div className={`
-        flex-1 overflow-y-auto scroll-smooth
-        ${isMobile ? 'px-4 py-4' : 'px-6 py-6'}
-      `}>
-        <div className={`
-          mx-auto space-y-6
-          ${screenType === 'mobile' ? 'max-w-sm' : ''}
-          ${screenType === 'tablet' ? 'max-w-2xl' : ''}
-          ${screenType === 'desktop-sm' ? 'max-w-3xl' : ''}
-          ${screenType === 'desktop-md' ? 'max-w-4xl' : ''}
-          ${screenType === 'desktop-lg' ? 'max-w-5xl' : ''}
-        `}>
+      <div
+        className={`flex-1 overflow-y-auto scroll-smooth ${styles.spacing.container}`}
+      >
+        <div className={`mx-auto space-y-6 ${styles.maxWidth}`}>
           {/* Header */}
           <div className="text-center space-y-2">
-            <h1 className={`
-              font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent
-              ${isMobile ? 'text-2xl' : 'text-3xl'}
-            `}>
+            <h1
+              className={`font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent ${styles.text.title}`}
+            >
               推理服务
             </h1>
-            <p className={`
-              text-muted-foreground
-              ${isMobile ? 'text-sm' : 'text-base'}
-            `}>
+            <p className={`text-muted-foreground ${styles.text.subtitle}`}>
               配置 AI 推理服务的连接参数
             </p>
           </div>
 
           <TooltipProvider>
             <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50/50">
-              <CardHeader className={`${isMobile ? 'pb-4' : 'pb-6'}`}>
-                <CardTitle className={`
-                  flex items-center gap-2
-                  ${isMobile ? 'text-lg' : 'text-xl'}
-                `}>
-                  <Settings className={`text-blue-600 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+              <CardHeader className={styles.spacing.card}>
+                <CardTitle
+                  className={`flex items-center gap-2 ${styles.text.cardTitle}`}
+                >
+                  <Settings
+                    className={`text-blue-600 ${styles.input.iconSize}`}
+                  />
                   API 配置
                 </CardTitle>
               </CardHeader>
-              <CardContent className={`${isMobile ? 'space-y-6' : 'space-y-8'}`}>
-            {/* OpenAI Endpoint Configuration */}
-            <div className="space-y-4">
-              <Label className="text-sm font-semibold flex items-center gap-2">
-                <Globe className="h-4 w-4 text-green-600" />
-                推理服务地址
-                <Badge variant="secondary" className="ml-2">
-                  OpenAI Endpoint
-                </Badge>
-              </Label>
-              <div className="flex gap-3">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-11 w-11 border-2 hover:bg-gray-50 transition-all duration-200"
-                      onClick={async () => {
-                        await setOpenaiEndpoint();
-                        setOpenaiEndpointModified(false);
-                        toast.success("推理服务地址已恢复默认值");
-                      }}
-                    >
-                      <RotateCcw className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>恢复默认值</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Input
+              <CardContent className={styles.spacing.content}>
+                {/* OpenAI Endpoint Configuration */}
+                <ConfigItem
+                  icon={Globe}
+                  label="推理服务地址"
+                  badge="OpenAI Endpoint"
                   value={endpointValue}
-                  onChange={(e) => {
-                    setEndpointValue(e.target.value);
+                  onChange={(value) => {
+                    setEndpointValue(value);
                     setOpenaiEndpointModified(true);
                   }}
                   placeholder="请输入推理服务地址"
-                  className="flex-1 h-11 border-2 focus:border-green-500 transition-colors"
+                  color="green"
+                  isModified={openaiEndpointModified}
+                  onReset={async () => {
+                    await setOpenaiEndpoint();
+                    setOpenaiEndpointModified(false);
+                    toast.success("推理服务地址已恢复默认值");
+                  }}
+                  onSave={async () => {
+                    if (!endpointValue)
+                      return toast.error("请输入推理服务地址");
+                    await setOpenaiEndpoint(
+                      endpointValue.endsWith("/")
+                        ? endpointValue
+                        : `${endpointValue}/`
+                    );
+                    setOpenaiEndpointModified(false);
+                    toast.success("推理服务地址已更新");
+                  }}
                 />
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={openaiEndpointModified ? "default" : "outline"}
-                      size="icon"
-                      className={`h-11 w-11 transition-all duration-200 ${
-                        openaiEndpointModified
-                          ? "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl"
-                          : "border-2 hover:bg-gray-50"
-                      }`}
-                      onClick={async () => {
-                        if (!endpointValue)
-                          return toast.error("请输入推理服务地址");
-                        await setOpenaiEndpoint(
-                          endpointValue.endsWith("/")
-                            ? endpointValue
-                            : `${endpointValue}/`
-                        );
-                        setOpenaiEndpointModified(false);
-                        toast.success("推理服务地址已更新");
-                      }}
-                    >
-                      <Save className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>保存修改</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            </div>
 
-            {/* OpenAI API Key Configuration */}
-            <div className="space-y-4">
-              <Label className="text-sm font-semibold flex items-center gap-2">
-                <Shield className="h-4 w-4 text-blue-600" />
-                推理服务密钥
-                <Badge variant="secondary" className="ml-2">
-                  OpenAI API Key
-                </Badge>
-              </Label>
-              <div className="flex gap-3">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-11 w-11 border-2 hover:bg-gray-50 transition-all duration-200"
-                      onClick={async () => {
-                        await setOpenaiApiKey();
-                        setOpenaiApiKeyModified(false);
-                        toast.success("推理服务密钥已恢复默认值");
-                      }}
-                    >
-                      <RotateCcw className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>恢复默认值</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Input
-                  type="password"
+                {/* OpenAI API Key Configuration */}
+                <ConfigItem
+                  icon={Shield}
+                  label="推理服务密钥"
+                  badge="OpenAI API Key"
                   value={apiKeyValue}
-                  onChange={(e) => {
-                    setApiKeyValue(e.target.value);
+                  onChange={(value) => {
+                    setApiKeyValue(value);
                     setOpenaiApiKeyModified(true);
                   }}
                   placeholder="请输入推理服务密钥"
-                  className="flex-1 h-11 border-2 focus:border-blue-500 transition-colors"
+                  type="password"
+                  color="blue"
+                  isModified={openaiApiKeyModified}
+                  onReset={async () => {
+                    await setOpenaiApiKey();
+                    setOpenaiApiKeyModified(false);
+                    toast.success("推理服务密钥已恢复默认值");
+                  }}
+                  onSave={async () => {
+                    if (!apiKeyValue) return toast.error("请输入推理服务密钥");
+                    await setOpenaiApiKey(apiKeyValue);
+                    setOpenaiApiKeyModified(false);
+                    toast.success("推理服务密钥已更新");
+                  }}
                 />
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={openaiApiKeyModified ? "default" : "outline"}
-                      size="icon"
-                      className={`h-11 w-11 transition-all duration-200 ${
-                        openaiApiKeyModified
-                          ? "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl"
-                          : "border-2 hover:bg-gray-50"
-                      }`}
-                      onClick={async () => {
-                        if (!apiKeyValue)
-                          return toast.error("请输入推理服务密钥");
-                        await setOpenaiApiKey(apiKeyValue);
-                        setOpenaiApiKeyModified(false);
-                        toast.success("推理服务密钥已更新");
-                      }}
-                    >
-                      <Save className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>保存修改</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            </div>
 
-            {/* OpenAI Model Name Configuration */}
-            <div className="space-y-4">
-              <Label className="text-sm font-semibold flex items-center gap-2">
-                <Cpu className="h-4 w-4 text-purple-600" />
-                推理服务模型
-                <Badge variant="secondary" className="ml-2">
-                  OpenAI Model Name
-                </Badge>
-              </Label>
-              <div className="flex gap-3">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-11 w-11 border-2 hover:bg-gray-50 transition-all duration-200"
-                      onClick={async () => {
-                        await setOpenaiModelName();
-                        setOpenaiModelNameModified(false);
-                        toast.success("推理服务模型已恢复默认值");
-                      }}
-                    >
-                      <RotateCcw className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>恢复默认值</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Input
+                {/* OpenAI Model Name Configuration */}
+                <ConfigItem
+                  icon={Cpu}
+                  label="推理服务模型"
+                  badge="OpenAI Model Name"
                   value={modelNameValue}
-                  onChange={(e) => {
-                    setModelNameValue(e.target.value);
+                  onChange={(value) => {
+                    setModelNameValue(value);
                     setOpenaiModelNameModified(true);
                   }}
                   placeholder="请输入推理服务模型"
-                  className="flex-1 h-11 border-2 focus:border-purple-500 transition-colors"
+                  color="purple"
+                  isModified={openaiModelNameModified}
+                  onReset={async () => {
+                    await setOpenaiModelName();
+                    setOpenaiModelNameModified(false);
+                    toast.success("推理服务模型已恢复默认值");
+                  }}
+                  onSave={async () => {
+                    if (!modelNameValue)
+                      return toast.error("请输入推理服务模型");
+                    await setOpenaiModelName(modelNameValue);
+                    setOpenaiModelNameModified(false);
+                    toast.success("推理服务模型已更新");
+                  }}
                 />
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={openaiModelNameModified ? "default" : "outline"}
-                      size="icon"
-                      className={`h-11 w-11 transition-all duration-200 ${
-                        openaiModelNameModified
-                          ? "bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white shadow-lg hover:shadow-xl"
-                          : "border-2 hover:bg-gray-50"
-                      }`}
-                      onClick={async () => {
-                        if (!modelNameValue)
-                          return toast.error("请输入推理服务模型");
-                        await setOpenaiModelName(modelNameValue);
-                        setOpenaiModelNameModified(false);
-                        toast.success("推理服务模型已更新");
-                      }}
-                    >
-                      <Save className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>保存修改</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            </div>
               </CardContent>
             </Card>
           </TooltipProvider>
