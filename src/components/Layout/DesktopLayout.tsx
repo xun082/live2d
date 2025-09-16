@@ -97,27 +97,31 @@ export function DesktopLayout() {
         {/* 右侧控制面板 */}
         <Panel
           defaultSize={panelSizes.right}
-          minSize={screenType === "tablet" ? 30 : 20}
-          maxSize={screenType === "tablet" ? 60 : 70}
-          className="bg-white"
+          minSize={screenType === "tablet" ? 25 : 20}
+          maxSize={screenType === "tablet" ? 65 : 75}
+          className="bg-white flex-shrink-0"
         >
           <div className="w-full h-full overflow-hidden grid grid-rows-[1fr_auto]">
             <div
               className={`
-                w-full h-full overflow-hidden flex flex-col justify-center items-center py-4
-                transition-all duration-300
+                w-full h-full overflow-y-auto overflow-x-hidden flex flex-col py-4
+                transition-all duration-300 scroll-smooth
                 ${
-                  screenType === "tablet" || screenType === "desktop-sm"
+                  screenType === "tablet"
+                    ? "px-3"
+                    : screenType === "desktop-sm"
                     ? "px-4"
                     : "px-6"
                 }
               `}
             >
-              <div className="w-full overflow-hidden">
+              <div className="w-full min-h-0 flex-1">
                 <Outlet />
               </div>
             </div>
-            <Navigation />
+            <div className="flex-shrink-0">
+              <Navigation />
+            </div>
           </div>
         </Panel>
       </PanelGroup>

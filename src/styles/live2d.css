@@ -22,12 +22,15 @@
   align-items: center;
   z-index: -500;
   transition: width 0.2s ease-in-out;
+  overflow: visible;
 }
 
 #live2d-container #live2d {
   width: 100%;
   height: 100%;
   z-index: -500;
+  overflow: visible;
+  position: relative;
 }
 
 #live2d-container #live2d-message {

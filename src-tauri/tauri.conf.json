@@ -29,7 +29,13 @@
   },
   "plugins": {
     "store": null,
-
+    "updater": {
+      "endpoints": [
+        "https://api.github.com/repos/xun082/live2d/releases/latest"
+      ],
+      "dialog": false,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEJFRkIxNzE5NTQwMDZEMkUKUldRdWJRQlVHUmY3dmxOY2VPNWlmR1JxZWFUVmtsNVRlbFlUR3FqU3ZTYWdtSDB0RjRHdHRwUGYK"
+    },
     "dialog": null,
     "shell": {
       "open": true

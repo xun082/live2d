@@ -85,17 +85,23 @@ export default function ConfigLayoutPage() {
       <div
         className={`
         flex-1 overflow-y-auto scroll-smooth
-        ${isMobile ? "px-4 py-4" : "px-6 py-6"}
+        ${
+          isMobile
+            ? "px-2 py-3"
+            : screenType === "tablet"
+            ? "px-3 py-4"
+            : "px-4 py-5"
+        }
       `}
       >
         <div
           className={`
-          mx-auto space-y-6
-          ${screenType === "mobile" ? "max-w-sm" : ""}
-          ${screenType === "tablet" ? "max-w-2xl" : ""}
-          ${screenType === "desktop-sm" ? "max-w-3xl" : ""}
-          ${screenType === "desktop-md" ? "max-w-4xl" : ""}
-          ${screenType === "desktop-lg" ? "max-w-5xl" : ""}
+          mx-auto space-y-4
+          ${screenType === "mobile" ? "max-w-full" : ""}
+          ${screenType === "tablet" ? "max-w-full" : ""}
+          ${screenType === "desktop-sm" ? "max-w-full" : ""}
+          ${screenType === "desktop-md" ? "max-w-full" : ""}
+          ${screenType === "desktop-lg" ? "max-w-full" : ""}
         `}
         >
           {/* Header */}
@@ -103,7 +109,13 @@ export default function ConfigLayoutPage() {
             <h1
               className={`
               font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent
-              ${isMobile ? "text-2xl" : "text-3xl"}
+              ${
+                isMobile
+                  ? "text-xl"
+                  : screenType === "tablet"
+                  ? "text-2xl"
+                  : "text-3xl"
+              }
             `}
             >
               布局配置
@@ -111,7 +123,13 @@ export default function ConfigLayoutPage() {
             <p
               className={`
               text-muted-foreground
-              ${isMobile ? "text-sm" : "text-base"}
+              ${
+                isMobile
+                  ? "text-xs"
+                  : screenType === "tablet"
+                  ? "text-sm"
+                  : "text-base"
+              }
             `}
             >
               自定义聊天形象和界面布局设置
@@ -120,11 +138,25 @@ export default function ConfigLayoutPage() {
 
           {/* Main Configuration Card */}
           <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50/50">
-            <CardHeader className={`${isMobile ? "pb-4" : "pb-6"}`}>
+            <CardHeader
+              className={`${
+                isMobile
+                  ? "p-3 pb-2"
+                  : screenType === "tablet"
+                  ? "p-4 pb-3"
+                  : "p-6 pb-4"
+              }`}
+            >
               <CardTitle
                 className={`
                 flex items-center gap-2
-                ${isMobile ? "text-lg" : "text-xl"}
+                ${
+                  isMobile
+                    ? "text-base"
+                    : screenType === "tablet"
+                    ? "text-lg"
+                    : "text-xl"
+                }
               `}
               >
                 <Settings
@@ -135,12 +167,22 @@ export default function ConfigLayoutPage() {
                 基础配置
               </CardTitle>
             </CardHeader>
-            <CardContent className={`${isMobile ? "space-y-6" : "space-y-8"}`}>
+            <CardContent
+              className={`${
+                isMobile
+                  ? "p-3 space-y-3"
+                  : screenType === "tablet"
+                  ? "p-4 space-y-4"
+                  : "p-6 space-y-6"
+              }`}
+            >
               {/* Character Selection */}
-              <div className="space-y-3">
+              <div className={`${isMobile ? "space-y-2" : "space-y-3"}`}>
                 <Label
                   htmlFor="live2d-model"
-                  className="text-sm font-semibold flex items-center gap-2"
+                  className={`font-semibold flex items-center gap-2 ${
+                    isMobile ? "text-xs" : "text-sm"
+                  }`}
                 >
                   <User className="h-4 w-4 text-green-600" />
                   聊天形象
@@ -170,7 +212,15 @@ export default function ConfigLayoutPage() {
               </div>
 
               {/* Position and Scale Section */}
-              <div className="space-y-6">
+              <div
+                className={`${
+                  isMobile
+                    ? "space-y-3"
+                    : screenType === "tablet"
+                    ? "space-y-4"
+                    : "space-y-6"
+                }`}
+              >
                 <h3
                   className={`
               font-semibold text-gray-800 border-b border-gray-200 pb-2
@@ -187,10 +237,20 @@ export default function ConfigLayoutPage() {
             `}
                 >
                   {/* Vertical Position */}
-                  <div className="space-y-4">
+                  <div
+                    className={`${
+                      isMobile
+                        ? "space-y-2"
+                        : screenType === "tablet"
+                        ? "space-y-3"
+                        : "space-y-4"
+                    }`}
+                  >
                     <Label
                       htmlFor="position-y"
-                      className="text-sm font-semibold flex items-center gap-2"
+                      className={`font-semibold flex items-center gap-2 ${
+                        isMobile ? "text-xs" : "text-sm"
+                      }`}
                     >
                       <Move className="h-4 w-4 text-blue-600" />
                       模型垂直位置
@@ -228,10 +288,20 @@ export default function ConfigLayoutPage() {
                   </div>
 
                   {/* Horizontal Position */}
-                  <div className="space-y-4">
+                  <div
+                    className={`${
+                      isMobile
+                        ? "space-y-2"
+                        : screenType === "tablet"
+                        ? "space-y-3"
+                        : "space-y-4"
+                    }`}
+                  >
                     <Label
                       htmlFor="position-x"
-                      className="text-sm font-semibold flex items-center gap-2"
+                      className={`font-semibold flex items-center gap-2 ${
+                        isMobile ? "text-xs" : "text-sm"
+                      }`}
                     >
                       <Move className="h-4 w-4 text-purple-600" />
                       模型水平位置
@@ -270,10 +340,20 @@ export default function ConfigLayoutPage() {
                 </div>
 
                 {/* Scale */}
-                <div className="space-y-4">
+                <div
+                  className={`${
+                    isMobile
+                      ? "space-y-2"
+                      : screenType === "tablet"
+                      ? "space-y-3"
+                      : "space-y-4"
+                  }`}
+                >
                   <Label
                     htmlFor="scale"
-                    className="text-sm font-semibold flex items-center gap-2"
+                    className={`font-semibold flex items-center gap-2 ${
+                      isMobile ? "text-xs" : "text-sm"
+                    }`}
                   >
                     <Maximize2 className="h-4 w-4 text-orange-600" />
                     模型缩放
@@ -308,7 +388,15 @@ export default function ConfigLayoutPage() {
               </div>
 
               {/* Background Section */}
-              <div className="space-y-6">
+              <div
+                className={`${
+                  isMobile
+                    ? "space-y-3"
+                    : screenType === "tablet"
+                    ? "space-y-4"
+                    : "space-y-6"
+                }`}
+              >
                 <h3
                   className={`
               font-semibold text-gray-800 border-b border-gray-200 pb-2
@@ -318,10 +406,22 @@ export default function ConfigLayoutPage() {
                   背景设置
                 </h3>
 
-                <div className="space-y-4">
+                <div
+                  className={`${
+                    isMobile
+                      ? "space-y-2"
+                      : screenType === "tablet"
+                      ? "space-y-3"
+                      : "space-y-4"
+                  }`}
+                >
                   {/* Background Upload */}
                   <div className="space-y-3">
-                    <Label className="text-sm font-semibold flex items-center gap-2">
+                    <Label
+                      className={`font-semibold flex items-center gap-2 ${
+                        isMobile ? "text-xs" : "text-sm"
+                      }`}
+                    >
                       <Upload className="h-4 w-4 text-indigo-600" />
                       背景图片
                     </Label>
@@ -368,7 +468,9 @@ export default function ConfigLayoutPage() {
                   <div className="space-y-3">
                     <Label
                       htmlFor="background-display"
-                      className="text-sm font-semibold flex items-center gap-2"
+                      className={`font-semibold flex items-center gap-2 ${
+                        isMobile ? "text-xs" : "text-sm"
+                      }`}
                     >
                       <Monitor className="h-4 w-4 text-teal-600" />
                       背景图片显示区域

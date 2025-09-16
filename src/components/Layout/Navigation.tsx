@@ -6,6 +6,7 @@ import {
   Network,
   Menu,
   X,
+  Settings,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -13,6 +14,7 @@ import { useStates } from "../../stores/useStates";
 import { useResponsive } from "../../hooks/useResponsive";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
+import { AppUpdater } from "../AppUpdater";
 
 export function Navigation() {
   const location = useLocation();
@@ -81,6 +83,12 @@ export function Navigation() {
       key: "/config/layout",
       label: "自定义设置",
       icon: Layout,
+      category: "config",
+    },
+    {
+      key: "/config/updater",
+      label: "更新设置",
+      icon: Settings,
       category: "config",
     },
   ];
@@ -221,6 +229,12 @@ export function Navigation() {
                   </div>
                 );
               })}
+
+              {/* 分隔线 */}
+              <div className="w-px h-8 bg-gradient-to-b from-transparent via-gray-300 to-transparent mx-2" />
+
+              {/* 更新检测组件 - 紧凑模式 */}
+              <AppUpdater variant="compact" />
             </div>
           )}
         </nav>
