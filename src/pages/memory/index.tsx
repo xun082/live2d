@@ -30,17 +30,23 @@ export default function MemoryPage() {
       <div
         className={`
         flex-1 overflow-y-auto scroll-smooth
-        ${isMobile ? "px-4 py-4" : "px-6 py-6"}
+        ${
+          isMobile
+            ? "px-2 py-3"
+            : screenType === "tablet"
+            ? "px-3 py-4"
+            : "px-4 py-5"
+        }
       `}
       >
         <div
           className={`
-          mx-auto space-y-6
-          ${screenType === "mobile" ? "max-w-sm" : ""}
-          ${screenType === "tablet" ? "max-w-2xl" : ""}
-          ${screenType === "desktop-sm" ? "max-w-3xl" : ""}
-          ${screenType === "desktop-md" ? "max-w-4xl" : ""}
-          ${screenType === "desktop-lg" ? "max-w-5xl" : ""}
+          mx-auto space-y-4
+          ${screenType === "mobile" ? "max-w-full" : ""}
+          ${screenType === "tablet" ? "max-w-full" : ""}
+          ${screenType === "desktop-sm" ? "max-w-full" : ""}
+          ${screenType === "desktop-md" ? "max-w-full" : ""}
+          ${screenType === "desktop-lg" ? "max-w-full" : ""}
         `}
         >
           {/* Header */}
@@ -48,7 +54,13 @@ export default function MemoryPage() {
             <h1
               className={`
               font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent
-              ${isMobile ? "text-2xl" : "text-3xl"}
+              ${
+                isMobile
+                  ? "text-xl"
+                  : screenType === "tablet"
+                  ? "text-2xl"
+                  : "text-3xl"
+              }
             `}
             >
               记忆管理
@@ -56,7 +68,13 @@ export default function MemoryPage() {
             <p
               className={`
               text-muted-foreground
-              ${isMobile ? "text-sm" : "text-base"}
+              ${
+                isMobile
+                  ? "text-xs"
+                  : screenType === "tablet"
+                  ? "text-sm"
+                  : "text-base"
+              }
             `}
             >
               配置用户和助手的个性化设置
@@ -65,11 +83,11 @@ export default function MemoryPage() {
 
           {/* Main Form Card */}
           <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50/50">
-            <CardHeader className={`${isMobile ? "pb-4" : "pb-6"}`}>
+            <CardHeader className={`${isMobile ? "p-3 pb-2" : screenType === "tablet" ? "p-4 pb-3" : "p-6 pb-4"}`}>
               <CardTitle
                 className={`
                 flex items-center gap-2
-                ${isMobile ? "text-lg" : "text-xl"}
+                ${isMobile ? "text-base" : screenType === "tablet" ? "text-lg" : "text-xl"}
               `}
               >
                 <Brain
@@ -80,18 +98,18 @@ export default function MemoryPage() {
                 基础设置
               </CardTitle>
             </CardHeader>
-            <CardContent className={`${isMobile ? "space-y-6" : "space-y-8"}`}>
+            <CardContent className={`${isMobile ? "p-3 space-y-3" : screenType === "tablet" ? "p-4 space-y-4" : "p-6 space-y-6"}`}>
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
                   handleSave();
                 }}
-                className={`${isMobile ? "space-y-6" : "space-y-8"}`}
+                className={`${isMobile ? "space-y-3" : screenType === "tablet" ? "space-y-4" : "space-y-6"}`}
               >
                 {/* Basic Info Section */}
                 <div
                   className={`
-                   grid gap-6
+                   grid ${isMobile ? "gap-3" : screenType === "tablet" ? "gap-4" : "gap-6"}
                    ${
                      screenType === "desktop-md" || screenType === "desktop-lg"
                        ? "grid-cols-2"
@@ -100,10 +118,10 @@ export default function MemoryPage() {
                  `}
                 >
                   {/* User Name */}
-                  <div className="space-y-3">
+                  <div className={`${isMobile ? "space-y-2" : "space-y-3"}`}>
                     <Label
                       htmlFor="userName"
-                      className="text-sm font-semibold flex items-center gap-2"
+                      className={`font-semibold flex items-center gap-2 ${isMobile ? "text-xs" : "text-sm"}`}
                     >
                       <User className="h-4 w-4 text-green-600" />
                       用户名称
@@ -121,10 +139,10 @@ export default function MemoryPage() {
                   </div>
 
                   {/* Assistant Name */}
-                  <div className="space-y-3">
+                  <div className={`${isMobile ? "space-y-2" : "space-y-3"}`}>
                     <Label
                       htmlFor="selfName"
-                      className="text-sm font-semibold flex items-center gap-2"
+                      className={`font-semibold flex items-center gap-2 ${isMobile ? "text-xs" : "text-sm"}`}
                     >
                       <Bot className="h-4 w-4 text-blue-600" />
                       助手名称
@@ -143,11 +161,11 @@ export default function MemoryPage() {
                 </div>
 
                 {/* Memory Section */}
-                <div className={`${isMobile ? "space-y-4" : "space-y-6"}`}>
+                <div className={`${isMobile ? "space-y-3" : screenType === "tablet" ? "space-y-4" : "space-y-6"}`}>
                   <h3
                     className={`
                     font-semibold text-gray-800 border-b border-gray-200 pb-2
-                    ${isMobile ? "text-base" : "text-lg"}
+                    ${isMobile ? "text-sm" : screenType === "tablet" ? "text-base" : "text-lg"}
                   `}
                   >
                     记忆配置
@@ -155,7 +173,7 @@ export default function MemoryPage() {
 
                   <div
                     className={`
-                     grid gap-6
+                     grid ${isMobile ? "gap-3" : screenType === "tablet" ? "gap-4" : "gap-6"}
                      ${
                        screenType === "desktop-lg"
                          ? "grid-cols-2"
@@ -164,10 +182,10 @@ export default function MemoryPage() {
                    `}
                   >
                     {/* Memory About Self */}
-                    <div className="space-y-3">
+                    <div className={`${isMobile ? "space-y-2" : "space-y-3"}`}>
                       <Label
                         htmlFor="memoryAboutSelf"
-                        className="text-sm font-semibold flex items-center gap-2"
+                        className={`font-semibold flex items-center gap-2 ${isMobile ? "text-xs" : "text-sm"}`}
                       >
                         <Bot className="h-4 w-4 text-purple-600" />
                         关于助手的记忆
@@ -186,10 +204,10 @@ export default function MemoryPage() {
                     </div>
 
                     {/* Memory About User */}
-                    <div className="space-y-3">
+                    <div className={`${isMobile ? "space-y-2" : "space-y-3"}`}>
                       <Label
                         htmlFor="memoryAboutUser"
-                        className="text-sm font-semibold flex items-center gap-2"
+                        className={`font-semibold flex items-center gap-2 ${isMobile ? "text-xs" : "text-sm"}`}
                       >
                         <User className="h-4 w-4 text-orange-600" />
                         关于用户的记忆
@@ -251,7 +269,7 @@ export default function MemoryPage() {
 
           {/* Information Card */}
           <Card className="shadow-lg border-0 bg-gradient-to-r from-blue-50 to-purple-50">
-            <CardContent className={`${isMobile ? "p-4" : "p-6"}`}>
+            <CardContent className={`${isMobile ? "p-3" : screenType === "tablet" ? "p-4" : "p-6"}`}>
               <div className="flex items-start gap-3">
                 <div
                   className={`bg-blue-100 rounded-full ${
@@ -267,14 +285,14 @@ export default function MemoryPage() {
                 <div className="space-y-2">
                   <h4
                     className={`font-semibold text-gray-800 ${
-                      isMobile ? "text-sm" : ""
+                      isMobile ? "text-xs" : screenType === "tablet" ? "text-sm" : "text-base"
                     }`}
                   >
                     使用说明
                   </h4>
                   <p
                     className={`text-gray-600 leading-relaxed ${
-                      isMobile ? "text-xs" : "text-sm"
+                      isMobile ? "text-xs" : screenType === "tablet" ? "text-xs" : "text-sm"
                     }`}
                   >
                     在简化版本中，这些设置仅在当前会话中有效。
