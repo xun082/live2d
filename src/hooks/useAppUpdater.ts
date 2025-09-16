@@ -16,9 +16,31 @@ const isTauri = typeof window !== "undefined" && window.__TAURI_INTERNALS__;
 
 const check = async (): Promise<Update | null> => {
   if (!isTauri) {
-    // 开发环境模拟
-    console.log("🔄 检查更新 (开发模式)");
-    return null;
+    // 开发环境模拟 - 检查GitHub API
+    console.log("🔄 检查更新 (Web模式 - 使用GitHub API)");
+    try {
+      const response = await fetch("https://api.github.com/repos/xun082/live2d/releases/latest");
+      if (!response.ok) {
+        throw new Error("获取更新信息失败");
+      }
+      const release = await response.json();
+      const latestVersion = release.tag_name.replace('v', '');
+      const currentVersion = "2.0.5"; // 当前版本
+      
+      // 简单的版本比较
+      if (latestVersion !== currentVersion) {
+        return {
+          version: latestVersion,
+          body: release.body || "发现新版本！",
+          date: release.published_at,
+          currentVersion: currentVersion
+        } as any;
+      }
+      return null;
+    } catch (error) {
+      console.warn("Web模式更新检查失败:", error);
+      return null;
+    }
   }
 
   try {
@@ -183,10 +205,42 @@ export function useAppUpdater(options: UseAppUpdaterOptions = {}) {
         error: null,
       }));
 
+      if (!isTauri) {
+        // Web模式 - 模拟下载过程并引导用户手动下载
+        console.log("📥 Web模式：模拟下载更新...");
+        
+        // 模拟下载进度
+        for (let i = 0; i <= 100; i += 10) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+          setUpdateState((prev) => ({ ...prev, progress: i }));
+        }
+        
+        setUpdateState((prev) => ({
+          ...prev,
+          progress: 100,
+          isDownloading: false,
+        }));
+        
+        // 引导用户手动下载
+        const shouldOpen = await ask(
+          `发现新版本 v${updateState.updateInfo.version}！\n\n在Web模式下，请手动访问GitHub下载最新版本。\n\n是否现在打开下载页面？`,
+          {
+            title: "手动更新",
+            kind: "info",
+          }
+        );
+        
+        if (shouldOpen) {
+          window.open("https://github.com/xun082/live2d/releases/latest", "_blank");
+        }
+        
+        return true;
+      }
+
       let downloaded = 0;
       let contentLength = 0;
 
-      // 下载更新并显示进度
+      // Tauri模式 - 真实下载更新
       await updateState.updateInfo.downloadAndInstall(
         (event: DownloadEvent) => {
           switch (event.event) {

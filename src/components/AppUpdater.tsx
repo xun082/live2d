@@ -35,6 +35,17 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+// 获取当前应用版本
+function getCurrentVersion(): string {
+  // 在Tauri环境中，可以从tauri API获取版本
+  if (typeof window !== "undefined" && window.__TAURI_INTERNALS__) {
+    // 这里应该从tauri获取版本，但作为fallback使用package.json版本
+    return "2.0.5";
+  }
+  // Web环境或开发环境，返回package.json版本
+  return "2.0.5";
+}
+
 interface AppUpdaterProps {
   /**
    * 是否显示在导航栏中的更新徽章
@@ -267,7 +278,7 @@ export function AppUpdater({
         {/* 当前版本信息 */}
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-600">当前版本</span>
-          <Badge variant="outline">v2.0.2</Badge>
+          <Badge variant="outline">v{getCurrentVersion()}</Badge>
         </div>
 
         {/* 更新状态 */}
