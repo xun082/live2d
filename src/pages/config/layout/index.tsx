@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+// SliderControl already imports base Slider; keep page lean
 import { Slider } from "@/components/ui/slider";
 import {
   Image,
@@ -142,65 +143,6 @@ export default function ConfigLayoutPage() {
     </Label>
   );
 
-  const SliderControl = ({
-    id,
-    value,
-    onChange,
-    min,
-    max,
-    step,
-    color,
-    leftLabel,
-    rightLabel,
-    currentValue,
-  }: {
-    id: string;
-    value: number;
-    onChange: (value: number) => void;
-    min: number;
-    max: number;
-    step: number;
-    color: "blue" | "purple" | "orange" | "green" | "red" | "gray";
-    leftLabel: string;
-    rightLabel: string;
-    currentValue: string;
-  }) => {
-    const colorTextMap: Record<
-      "blue" | "purple" | "orange" | "green" | "red" | "gray",
-      string
-    > = {
-      blue: "text-blue-600",
-      purple: "text-purple-600",
-      orange: "text-orange-600",
-      green: "text-green-600",
-      red: "text-red-600",
-      gray: "text-gray-600",
-    };
-    return (
-      <div className="relative">
-        <Slider
-          id={id}
-          min={min}
-          max={max}
-          step={step}
-          value={[value]}
-          onValueChange={(val: number[]) => onChange(val[0])}
-          variant="gradient"
-          color={color}
-          size="md"
-          className="w-full"
-        />
-        <div className="flex justify-between text-xs text-gray-500 mt-2">
-          <span>{leftLabel}</span>
-          <span className={`font-medium ${colorTextMap[color]}`}>
-            {currentValue}
-          </span>
-          <span>{rightLabel}</span>
-        </div>
-      </div>
-    );
-  };
-
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -308,16 +250,18 @@ export default function ConfigLayoutPage() {
                               : `向上偏移${-live2dPositionY}像素`
                           }]`}
                     </ConfigLabel>
-                    <SliderControl
+                    <Slider
                       id="position-y"
-                      value={live2dPositionY}
-                      onChange={setLive2dPositionY}
+                      value={[live2dPositionY]}
+                      onValueChange={(v) => setLive2dPositionY(v[0])}
+                      onValueCommit={(v) => setLive2dPositionY(v[0])}
                       min={-300}
                       max={300}
                       step={5}
                       color="blue"
-                      leftLabel="向上 300px"
-                      rightLabel="向下 300px"
+                      showLabels
+                      leftLabel={"向上 300px"}
+                      rightLabel={"向下 300px"}
                       currentValue={`${live2dPositionY}px`}
                     />
                   </div>
@@ -334,16 +278,18 @@ export default function ConfigLayoutPage() {
                               : `向左偏移${-live2dPositionX}像素`
                           }]`}
                     </ConfigLabel>
-                    <SliderControl
+                    <Slider
                       id="position-x"
-                      value={live2dPositionX}
-                      onChange={setLive2dPositionX}
+                      value={[live2dPositionX]}
+                      onValueChange={(v) => setLive2dPositionX(v[0])}
+                      onValueCommit={(v) => setLive2dPositionX(v[0])}
                       min={-600}
                       max={600}
                       step={10}
                       color="purple"
-                      leftLabel="向左 600px"
-                      rightLabel="向右 600px"
+                      showLabels
+                      leftLabel={"向左 600px"}
+                      rightLabel={"向右 600px"}
                       currentValue={`${live2dPositionX}px`}
                     />
                   </div>
@@ -357,16 +303,18 @@ export default function ConfigLayoutPage() {
                       ? ""
                       : ` [${(live2dScale * 100).toFixed(0)}%]`}
                   </ConfigLabel>
-                  <SliderControl
+                  <Slider
                     id="scale"
-                    value={live2dScale}
-                    onChange={setLive2dScale}
+                    value={[live2dScale]}
+                    onValueChange={(v) => setLive2dScale(v[0])}
+                    onValueCommit={(v) => setLive2dScale(v[0])}
                     min={0.5}
                     max={3.0}
                     step={0.1}
                     color="orange"
-                    leftLabel="50%"
-                    rightLabel="300%"
+                    showLabels
+                    leftLabel={"50%"}
+                    rightLabel={"300%"}
                     currentValue={`${(live2dScale * 100).toFixed(0)}%`}
                   />
                 </div>

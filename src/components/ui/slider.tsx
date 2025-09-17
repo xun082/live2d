@@ -1,14 +1,18 @@
-"use client";
-
-import * as SliderPrimitive from "@radix-ui/react-slider";
 import * as React from "react";
+import * as SliderPrimitive from "@radix-ui/react-slider";
 
 import { cn } from "@/lib/utils";
 
 export interface SliderProps
   extends React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root> {
+  showLabels?: boolean;
+  leftLabel?: React.ReactNode;
+  rightLabel?: React.ReactNode;
+  currentValue?: React.ReactNode;
+  enableRafThrottle?: boolean;
+  onValueCommit?: (value: number[]) => void;
+  // 新增：视觉风格
   variant?: "default" | "gradient" | "minimal";
-  size?: "sm" | "md" | "lg";
   color?: "blue" | "purple" | "orange" | "green" | "red" | "gray";
 }
 
@@ -17,22 +21,81 @@ const Slider = React.forwardRef<
   SliderProps
 >(
   (
-    { className, variant = "default", size = "md", color = "blue", ...props },
+    {
+      className,
+      defaultValue,
+      value,
+      min = 0,
+      max = 100,
+      showLabels = false,
+      leftLabel,
+      rightLabel,
+      currentValue,
+      enableRafThrottle = true,
+      onValueChange,
+      onValueCommit,
+      variant = "gradient",
+      color = "blue",
+      ...props
+    },
     ref
   ) => {
-    const sizeClasses = {
-      sm: "h-1",
-      md: "h-2",
-      lg: "h-3",
+    const _values = React.useMemo(
+      () =>
+        Array.isArray(value)
+          ? value
+          : Array.isArray(defaultValue)
+          ? defaultValue
+          : [min, max],
+      [value, defaultValue, min, max]
+    );
+
+    const [internalValue, setInternalValue] = React.useState<number[]>(
+      Array.isArray(value)
+        ? (value as number[])
+        : Array.isArray(defaultValue)
+        ? (defaultValue as number[])
+        : [min]
+    );
+
+    React.useEffect(() => {
+      if (Array.isArray(value)) setInternalValue(value as number[]);
+    }, [value]);
+
+    const rafRef = React.useRef<number | null>(null);
+
+    const emitChange = (next: number[]) => {
+      if (!onValueChange) return;
+      if (!enableRafThrottle) {
+        onValueChange(next);
+        return;
+      }
+      if (rafRef.current != null) return;
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null;
+        onValueChange(next);
+      });
     };
 
-    const thumbSizeClasses = {
-      sm: "h-4 w-4",
-      md: "h-5 w-5",
-      lg: "h-6 w-6",
+    const handleChange = (next: number[]) => {
+      setInternalValue(next);
+      emitChange(next);
     };
 
-    const colorClasses = {
+    const commit = () => {
+      if (rafRef.current != null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+        onValueChange?.(internalValue);
+      }
+      onValueCommit?.(internalValue);
+    };
+
+    // 颜色与风格类
+    const colorClasses: Record<
+      NonNullable<SliderProps["color"]>,
+      { track: string; range: string; thumb: string }
+    > = {
       blue: {
         track: "bg-gradient-to-r from-blue-100 to-blue-200",
         range: "bg-gradient-to-r from-blue-500 to-blue-600",
@@ -67,64 +130,80 @@ const Slider = React.forwardRef<
       },
     };
 
-    const variantClasses = {
-      default: {
-        track: "bg-secondary",
-        range: "bg-primary",
-        thumb: "border-primary hover:border-primary/80 focus:border-primary",
-      },
-      gradient: {
-        track: colorClasses[color].track,
-        range: colorClasses[color].range,
-        thumb: colorClasses[color].thumb,
-      },
-      minimal: {
-        track: "bg-gray-200",
-        range: "bg-gray-400",
-        thumb: "border-gray-400 hover:border-gray-500 focus:border-gray-500",
-      },
-    };
-
-    const currentVariant = variantClasses[variant];
+    const trackVariant =
+      variant === "gradient"
+        ? colorClasses[color].track
+        : variant === "minimal"
+        ? "bg-gray-200"
+        : "bg-secondary";
+    const rangeVariant =
+      variant === "gradient"
+        ? colorClasses[color].range
+        : variant === "minimal"
+        ? "bg-gray-400"
+        : "bg-primary";
+    const thumbVariant =
+      variant === "gradient"
+        ? colorClasses[color].thumb
+        : variant === "minimal"
+        ? "border-gray-400 hover:border-gray-500 focus:border-gray-500"
+        : "border-primary hover:border-primary/80 focus:border-primary";
 
     return (
-      <SliderPrimitive.Root
-        ref={ref}
-        className={cn(
-          "relative flex w-full touch-none select-none items-center group",
-          className
-        )}
-        {...props}
-      >
-        <SliderPrimitive.Track
+      <div className={cn("w-full", className)}>
+        <SliderPrimitive.Root
+          ref={ref}
+          data-slot="slider"
+          defaultValue={defaultValue}
+          value={value}
+          min={min}
+          max={max}
           className={cn(
-            "relative w-full grow overflow-hidden rounded-full transition-all duration-200",
-            sizeClasses[size],
-            currentVariant.track
+            "relative flex w-full touch-none items-center select-none data-[disabled]:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col",
+            showLabels ? "mb-2" : undefined
           )}
+          onValueChange={handleChange}
+          onPointerUp={commit}
+          {...props}
         >
-          <SliderPrimitive.Range
+          <SliderPrimitive.Track
+            data-slot="slider-track"
             className={cn(
-              "absolute h-full rounded-full transition-all duration-200",
-              currentVariant.range
+              "relative grow overflow-hidden rounded-full data-[orientation=horizontal]:h-1.5 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5",
+              trackVariant
             )}
-          />
-        </SliderPrimitive.Track>
-        <SliderPrimitive.Thumb
-          className={cn(
-            "block rounded-full border-2 bg-white shadow-lg ring-offset-background transition-all duration-200",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-            "disabled:pointer-events-none disabled:opacity-50",
-            "hover:shadow-xl",
-            "active:shadow-md",
-            thumbSizeClasses[size],
-            currentVariant.thumb
-          )}
-        />
-      </SliderPrimitive.Root>
+          >
+            <SliderPrimitive.Range
+              data-slot="slider-range"
+              className={cn(
+                "absolute data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full",
+                rangeVariant
+              )}
+            />
+          </SliderPrimitive.Track>
+          {Array.from({ length: _values.length }, (_, index) => (
+            <SliderPrimitive.Thumb
+              data-slot="slider-thumb"
+              key={index}
+              className={cn(
+                "bg-background ring-ring/50 block size-4 shrink-0 rounded-full border shadow-sm transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50",
+                thumbVariant
+              )}
+            />
+          ))}
+        </SliderPrimitive.Root>
+        {showLabels && (
+          <div className="flex justify-between text-xs text-gray-500">
+            <span>{leftLabel}</span>
+            <span>{currentValue}</span>
+            <span>{rightLabel}</span>
+          </div>
+        )}
+      </div>
     );
   }
 );
+
 Slider.displayName = SliderPrimitive.Root.displayName;
 
 export { Slider };

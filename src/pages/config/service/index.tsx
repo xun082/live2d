@@ -21,6 +21,7 @@ import {
 } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
+import { Slider } from "../../../components/ui/slider";
 import {
   Select,
   SelectContent,
@@ -621,17 +622,25 @@ export default function ConfigServicePage() {
                           <Label className="text-sm font-semibold">
                             语速: {webSpeechRate.toFixed(1)}
                           </Label>
-                          <Input
-                            type="range"
-                            min="0.5"
-                            max="2"
-                            step="0.1"
-                            value={webSpeechRate}
-                            onChange={(e) => {
-                              setWebSpeechRate(parseFloat(e.target.value));
+                          <Slider
+                            value={[webSpeechRate]}
+                            min={0.5}
+                            max={2}
+                            step={0.1}
+                            color="blue"
+                            variant="gradient"
+                            showLabels
+                            leftLabel={"0.5x"}
+                            rightLabel={"2.0x"}
+                            currentValue={`${webSpeechRate.toFixed(1)}`}
+                            onValueChange={(v) => {
+                              setWebSpeechRate(v[0]);
                               setWebSpeechConfigModified(true);
                             }}
-                            className="w-full accent-blue-600 dark:accent-blue-500"
+                            onValueCommit={(v) => {
+                              setWebSpeechRate(v[0]);
+                              setWebSpeechConfigModified(true);
+                            }}
                           />
                         </div>
 
@@ -640,17 +649,25 @@ export default function ConfigServicePage() {
                           <Label className="text-sm font-semibold">
                             音调: {webSpeechPitch.toFixed(1)}
                           </Label>
-                          <Input
-                            type="range"
-                            min="0"
-                            max="2"
-                            step="0.1"
-                            value={webSpeechPitch}
-                            onChange={(e) => {
-                              setWebSpeechPitch(parseFloat(e.target.value));
+                          <Slider
+                            value={[webSpeechPitch]}
+                            min={0}
+                            max={2}
+                            step={0.1}
+                            color="purple"
+                            variant="gradient"
+                            showLabels
+                            leftLabel={"0.0"}
+                            rightLabel={"2.0"}
+                            currentValue={`${webSpeechPitch.toFixed(1)}`}
+                            onValueChange={(v) => {
+                              setWebSpeechPitch(v[0]);
                               setWebSpeechConfigModified(true);
                             }}
-                            className="w-full accent-purple-600 dark:accent-purple-500"
+                            onValueCommit={(v) => {
+                              setWebSpeechPitch(v[0]);
+                              setWebSpeechConfigModified(true);
+                            }}
                           />
                         </div>
 
@@ -659,17 +676,25 @@ export default function ConfigServicePage() {
                           <Label className="text-sm font-semibold">
                             音量: {webSpeechVolume.toFixed(1)}
                           </Label>
-                          <Input
-                            type="range"
-                            min="0"
-                            max="1"
-                            step="0.1"
-                            value={webSpeechVolume}
-                            onChange={(e) => {
-                              setWebSpeechVolume(parseFloat(e.target.value));
+                          <Slider
+                            value={[webSpeechVolume]}
+                            min={0}
+                            max={1}
+                            step={0.1}
+                            color="green"
+                            variant="gradient"
+                            showLabels
+                            leftLabel={"0.0"}
+                            rightLabel={"1.0"}
+                            currentValue={`${webSpeechVolume.toFixed(1)}`}
+                            onValueChange={(v) => {
+                              setWebSpeechVolume(v[0]);
                               setWebSpeechConfigModified(true);
                             }}
-                            className="w-full accent-cyan-600 dark:accent-cyan-500"
+                            onValueCommit={(v) => {
+                              setWebSpeechVolume(v[0]);
+                              setWebSpeechConfigModified(true);
+                            }}
                           />
                         </div>
                       </div>
