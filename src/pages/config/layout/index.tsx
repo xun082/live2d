@@ -22,6 +22,7 @@ import {
   Monitor,
 } from "lucide-react";
 import { toast } from "sonner";
+import React from "react";
 import { toBase64 } from "../../../lib/utils.ts";
 import { useLive2dApi } from "../../../stores/useLive2dApi.ts";
 import { useResponsive } from "../../../hooks/useResponsive";
@@ -104,7 +105,7 @@ export default function ConfigLayoutPage() {
     spacing: getSpacing(),
     text: getTextSize(),
     input: getInputSize(),
-  };
+  } as const;
 
   // 可复用的标签组件
   const SectionTitle = ({
@@ -112,7 +113,7 @@ export default function ConfigLayoutPage() {
     children,
     color = "text-gray-800",
   }: {
-    icon?: React.ComponentType<any>;
+    icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
     children: React.ReactNode;
     color?: string;
   }) => (
@@ -129,7 +130,7 @@ export default function ConfigLayoutPage() {
     children,
     color = "text-gray-600",
   }: {
-    icon?: React.ComponentType<any>;
+    icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
     children: React.ReactNode;
     color?: string;
   }) => (
@@ -163,27 +164,42 @@ export default function ConfigLayoutPage() {
     leftLabel: string;
     rightLabel: string;
     currentValue: string;
-  }) => (
-    <div className="relative">
-      <Slider
-        id={id}
-        min={min}
-        max={max}
-        step={step}
-        value={[value]}
-        onValueChange={(val: number[]) => onChange(val[0])}
-        variant="gradient"
-        color={color}
-        size="md"
-        className="w-full"
-      />
-      <div className="flex justify-between text-xs text-gray-500 mt-2">
-        <span>{leftLabel}</span>
-        <span className={`font-medium text-${color}-600`}>{currentValue}</span>
-        <span>{rightLabel}</span>
+  }) => {
+    const colorTextMap: Record<
+      "blue" | "purple" | "orange" | "green" | "red" | "gray",
+      string
+    > = {
+      blue: "text-blue-600",
+      purple: "text-purple-600",
+      orange: "text-orange-600",
+      green: "text-green-600",
+      red: "text-red-600",
+      gray: "text-gray-600",
+    };
+    return (
+      <div className="relative">
+        <Slider
+          id={id}
+          min={min}
+          max={max}
+          step={step}
+          value={[value]}
+          onValueChange={(val: number[]) => onChange(val[0])}
+          variant="gradient"
+          color={color}
+          size="md"
+          className="w-full"
+        />
+        <div className="flex justify-between text-xs text-gray-500 mt-2">
+          <span>{leftLabel}</span>
+          <span className={`font-medium ${colorTextMap[color]}`}>
+            {currentValue}
+          </span>
+          <span>{rightLabel}</span>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>

@@ -85,11 +85,13 @@ export function MessageItem({
                 ${
                   isPlaying
                     ? "bg-blue-100 text-blue-600 cursor-not-allowed"
-                    : "bg-gray-100 hover:bg-blue-100 text-gray-600 hover:text-blue-600 hover:scale-110"
+                    : "bg-gray-100 hover:bg-blue-100 text-gray-600 hover:text-blue-600 hover:scale-110 cursor-pointer"
                 }
                 disabled:opacity-50
               `}
               title={isPlaying ? "正在播放..." : "播放语音"}
+              aria-label={isPlaying ? "正在播放语音" : "播放语音"}
+              aria-busy={isPlaying}
             >
               {isPlaying ? (
                 <VolumeX className="w-3 h-3" />

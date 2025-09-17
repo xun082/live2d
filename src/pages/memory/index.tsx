@@ -232,11 +232,7 @@ export default function MemoryPage() {
                          ? "gap-4"
                          : "gap-6"
                      }
-                     ${
-                       screenType === "desktop-lg"
-                         ? "grid-cols-2"
-                         : "grid-cols-1"
-                     }
+                     grid-cols-1
                    `}
                   >
                     {/* Memory About Self */}
@@ -369,8 +365,7 @@ export default function MemoryPage() {
                         : "text-sm"
                     }`}
                   >
-                    在简化版本中，这些设置仅在当前会话中有效。
-                    如需持久化存储，可以通过记忆管理功能导出和导入数据。
+                    这些设置会立即生效并影响后续对话。若需要长期保存或跨设备同步，可在记忆管理中通过导出/导入完成备份与迁移。
                   </p>
                 </div>
               </div>

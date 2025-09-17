@@ -242,7 +242,7 @@ export default function ConfigServicePage() {
                     </div>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Info className="h-4 w-4 text-muted-foreground hover:text-blue-600 transition-colors ml-auto" />
+                        <Info className="h-4 w-4 text-muted-foreground hover:text-blue-600 transition-colors ml-auto cursor-pointer" />
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>
@@ -267,7 +267,7 @@ export default function ConfigServicePage() {
                       <SelectTrigger
                         className={`
                     border-2 focus:border-green-500 transition-colors
-                    ${isMobile ? "h-10 text-sm" : "h-11"}
+                    ${isMobile ? "h-10 text-sm" : "h-11"} cursor-pointer
                   `}
                       >
                         <SelectValue placeholder="选择语音合成服务" />
@@ -284,61 +284,66 @@ export default function ConfigServicePage() {
                 </div>
 
                 {/* F5 TTS API Endpoint */}
-                <div className="space-y-4">
-                  <Label className="text-sm font-semibold flex items-center gap-2">
-                    <Server className="h-4 w-4 text-blue-600" />
-                    F5 TTS API Endpoint
-                    <Badge variant="secondary" className="ml-2">
-                      F5 TTS
-                    </Badge>
-                  </Label>
-                  <div className={`flex gap-2 ${isMobile ? "flex-col" : ""}`}>
-                    {!isMobile && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className={`border-2 hover:bg-gray-50 transition-all duration-200 ${
-                              isMobile ? "h-10 w-10" : "h-11 w-11"
-                            }`}
-                            onClick={async () => {
-                              await setF5TtsEndpoint();
-                              setF5TtsEndpointModified(false);
-                              toast.success("F5 TTS API Endpoint 已恢复默认值");
-                            }}
-                          >
-                            <RotateCcw className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>恢复默认值</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
-                    <div
-                      className={`flex gap-2 ${isMobile ? "w-full" : "flex-1"}`}
-                    >
-                      <Input
-                        value={f5TtsEndpointValue}
-                        onChange={(e) => {
-                          setF5TtsEndpointValue(e.target.value);
-                          setF5TtsEndpointModified(true);
-                        }}
-                        placeholder="请输入 F5 TTS API Endpoint"
-                        className={`
+                {currentSpeakApi === "F5 TTS" && (
+                  <div className="space-y-4">
+                    <Label className="text-sm font-semibold flex items-center gap-2">
+                      <Server className="h-4 w-4 text-blue-600" />
+                      F5 TTS API Endpoint
+                      <Badge variant="secondary" className="ml-2">
+                        F5 TTS
+                      </Badge>
+                    </Label>
+                    <div className={`flex gap-2 ${isMobile ? "flex-col" : ""}`}>
+                      {!isMobile && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className={`border-2 hover:bg-gray-50 transition-all duration-200 cursor-pointer ${
+                                isMobile ? "h-10 w-10" : "h-11 w-11"
+                              }`}
+                              onClick={async () => {
+                                await setF5TtsEndpoint();
+                                setF5TtsEndpointModified(false);
+                                toast.success(
+                                  "F5 TTS API Endpoint 已恢复默认值"
+                                );
+                              }}
+                            >
+                              <RotateCcw className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>恢复默认值</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                      <div
+                        className={`flex gap-2 ${
+                          isMobile ? "w-full" : "flex-1"
+                        }`}
+                      >
+                        <Input
+                          value={f5TtsEndpointValue}
+                          onChange={(e) => {
+                            setF5TtsEndpointValue(e.target.value);
+                            setF5TtsEndpointModified(true);
+                          }}
+                          placeholder="请输入 F5 TTS API Endpoint"
+                          className={`
                       flex-1 border-2 focus:border-blue-500 transition-colors
                       ${isMobile ? "h-10 text-sm" : "h-11"}
                     `}
-                      />
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant={
-                              f5TtsEndpointModified ? "default" : "outline"
-                            }
-                            size="icon"
-                            className={`
+                        />
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant={
+                                f5TtsEndpointModified ? "default" : "outline"
+                              }
+                              size="icon"
+                              className={`
                           transition-all duration-200
                           ${isMobile ? "h-10 w-10" : "h-11 w-11"}
                           ${
@@ -346,96 +351,103 @@ export default function ConfigServicePage() {
                               ? "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl"
                               : "border-2 hover:bg-gray-50"
                           }
+                          cursor-pointer
                         `}
-                            onClick={async () => {
-                              await setF5TtsEndpoint(f5TtsEndpointValue);
-                              setF5TtsEndpointModified(false);
-                              toast.success("F5 TTS API Endpoint 已更新");
-                            }}
-                          >
-                            <Save className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>保存修改</p>
-                        </TooltipContent>
-                      </Tooltip>
+                              onClick={async () => {
+                                await setF5TtsEndpoint(f5TtsEndpointValue);
+                                setF5TtsEndpointModified(false);
+                                toast.success("F5 TTS API Endpoint 已更新");
+                              }}
+                            >
+                              <Save className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>保存修改</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      {isMobile && (
+                        <Button
+                          variant="outline"
+                          className="w-full h-10 border-2 hover:bg-gray-50 font-medium transition-all duration-200 cursor-pointer"
+                          onClick={async () => {
+                            await setF5TtsEndpoint();
+                            setF5TtsEndpointModified(false);
+                            toast.success("F5 TTS API Endpoint 已恢复默认值");
+                          }}
+                        >
+                          <RotateCcw className="w-4 h-4 mr-2" />
+                          恢复默认值
+                        </Button>
+                      )}
                     </div>
-                    {isMobile && (
-                      <Button
-                        variant="outline"
-                        className="w-full h-10 border-2 hover:bg-gray-50 font-medium transition-all duration-200"
-                        onClick={async () => {
-                          await setF5TtsEndpoint();
-                          setF5TtsEndpointModified(false);
-                          toast.success("F5 TTS API Endpoint 已恢复默认值");
-                        }}
-                      >
-                        <RotateCcw className="w-4 h-4 mr-2" />
-                        恢复默认值
-                      </Button>
-                    )}
                   </div>
-                </div>
+                )}
 
                 {/* Fish Speech API Endpoint */}
-                <div className="space-y-4">
-                  <Label className="text-sm font-semibold flex items-center gap-2">
-                    <Fish className="h-4 w-4 text-purple-600" />
-                    Fish Speech API Endpoint
-                    <Badge variant="secondary" className="ml-2">
-                      Fish Speech
-                    </Badge>
-                  </Label>
-                  <div className={`flex gap-2 ${isMobile ? "flex-col" : ""}`}>
-                    {!isMobile && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className={`border-2 hover:bg-gray-50 transition-all duration-200 ${
-                              isMobile ? "h-10 w-10" : "h-11 w-11"
-                            }`}
-                            onClick={async () => {
-                              await setFishSpeechEndpoint();
-                              setFishSpeechEndpointModified(false);
-                              toast.success(
-                                "Fish Speech API Endpoint 已恢复默认值"
-                              );
-                            }}
-                          >
-                            <RotateCcw className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>恢复默认值</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
-                    <div
-                      className={`flex gap-2 ${isMobile ? "w-full" : "flex-1"}`}
-                    >
-                      <Input
-                        value={fishSpeechEndpointValue}
-                        onChange={(e) => {
-                          setFishSpeechEndpointValue(e.target.value);
-                          setFishSpeechEndpointModified(true);
-                        }}
-                        placeholder="请输入 Fish Speech API Endpoint"
-                        className={`
+                {currentSpeakApi === "Fish Speech" && (
+                  <div className="space-y-4">
+                    <Label className="text-sm font-semibold flex items-center gap-2">
+                      <Fish className="h-4 w-4 text-purple-600" />
+                      Fish Speech API Endpoint
+                      <Badge variant="secondary" className="ml-2">
+                        Fish Speech
+                      </Badge>
+                    </Label>
+                    <div className={`flex gap-2 ${isMobile ? "flex-col" : ""}`}>
+                      {!isMobile && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className={`border-2 hover:bg-gray-50 transition-all duration-200 cursor-pointer ${
+                                isMobile ? "h-10 w-10" : "h-11 w-11"
+                              }`}
+                              onClick={async () => {
+                                await setFishSpeechEndpoint();
+                                setFishSpeechEndpointModified(false);
+                                toast.success(
+                                  "Fish Speech API Endpoint 已恢复默认值"
+                                );
+                              }}
+                            >
+                              <RotateCcw className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>恢复默认值</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                      <div
+                        className={`flex gap-2 ${
+                          isMobile ? "w-full" : "flex-1"
+                        }`}
+                      >
+                        <Input
+                          value={fishSpeechEndpointValue}
+                          onChange={(e) => {
+                            setFishSpeechEndpointValue(e.target.value);
+                            setFishSpeechEndpointModified(true);
+                          }}
+                          placeholder="请输入 Fish Speech API Endpoint"
+                          className={`
                       flex-1 border-2 focus:border-purple-500 transition-colors
                       ${isMobile ? "h-10 text-sm" : "h-11"}
                     `}
-                      />
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant={
-                              fishSpeechEndpointModified ? "default" : "outline"
-                            }
-                            size="icon"
-                            className={`
+                        />
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant={
+                                fishSpeechEndpointModified
+                                  ? "default"
+                                  : "outline"
+                              }
+                              size="icon"
+                              className={`
                           transition-all duration-200
                           ${isMobile ? "h-10 w-10" : "h-11 w-11"}
                           ${
@@ -443,41 +455,45 @@ export default function ConfigServicePage() {
                               ? "bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white shadow-lg hover:shadow-xl"
                               : "border-2 hover:bg-gray-50"
                           }
+                          cursor-pointer
                         `}
-                            onClick={async () => {
-                              await setFishSpeechEndpoint(
-                                fishSpeechEndpointValue
-                              );
-                              setFishSpeechEndpointModified(false);
-                              toast.success("Fish Speech API Endpoint 已更新");
-                            }}
-                          >
-                            <Save className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>保存修改</p>
-                        </TooltipContent>
-                      </Tooltip>
+                              onClick={async () => {
+                                await setFishSpeechEndpoint(
+                                  fishSpeechEndpointValue
+                                );
+                                setFishSpeechEndpointModified(false);
+                                toast.success(
+                                  "Fish Speech API Endpoint 已更新"
+                                );
+                              }}
+                            >
+                              <Save className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>保存修改</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      {isMobile && (
+                        <Button
+                          variant="outline"
+                          className="w-full h-10 border-2 hover:bg-gray-50 font-medium transition-all duration-200 cursor-pointer"
+                          onClick={async () => {
+                            await setFishSpeechEndpoint();
+                            setFishSpeechEndpointModified(false);
+                            toast.success(
+                              "Fish Speech API Endpoint 已恢复默认值"
+                            );
+                          }}
+                        >
+                          <RotateCcw className="w-4 h-4 mr-2" />
+                          恢复默认值
+                        </Button>
+                      )}
                     </div>
-                    {isMobile && (
-                      <Button
-                        variant="outline"
-                        className="w-full h-10 border-2 hover:bg-gray-50 font-medium transition-all duration-200"
-                        onClick={async () => {
-                          await setFishSpeechEndpoint();
-                          setFishSpeechEndpointModified(false);
-                          toast.success(
-                            "Fish Speech API Endpoint 已恢复默认值"
-                          );
-                        }}
-                      >
-                        <RotateCcw className="w-4 h-4 mr-2" />
-                        恢复默认值
-                      </Button>
-                    )}
                   </div>
-                </div>
+                )}
 
                 {/* Web Speech API Configuration */}
                 {currentSpeakApi === "Web Speech API" && (
@@ -512,7 +528,7 @@ export default function ConfigServicePage() {
                       </div>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Info className="h-4 w-4 text-muted-foreground hover:text-blue-600 transition-colors ml-auto" />
+                          <Info className="h-4 w-4 text-muted-foreground hover:text-blue-600 transition-colors ml-auto cursor-pointer" />
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>
@@ -540,7 +556,7 @@ export default function ConfigServicePage() {
                         <SelectTrigger
                           className={`
                       border-2 focus:border-blue-500 transition-colors
-                      ${isMobile ? "h-10 text-sm" : "h-11"}
+                      ${isMobile ? "h-10 text-sm" : "h-11"} cursor-pointer
                     `}
                         >
                           <SelectValue placeholder="选择语言" />
@@ -577,7 +593,7 @@ export default function ConfigServicePage() {
                         <SelectTrigger
                           className={`
                       border-2 focus:border-blue-500 transition-colors
-                      ${isMobile ? "h-10 text-sm" : "h-11"}
+                      ${isMobile ? "h-10 text-sm" : "h-11"} cursor-pointer
                     `}
                         >
                           <SelectValue placeholder="选择声音（留空使用默认）" />
@@ -598,66 +614,64 @@ export default function ConfigServicePage() {
                     </div>
 
                     {/* Speech Parameters */}
-                    <div
-                      className={`grid ${
-                        isMobile ? "grid-cols-1 gap-4" : "grid-cols-3 gap-6"
-                      }`}
-                    >
-                      {/* Rate */}
-                      <div className="space-y-2">
-                        <Label className="text-sm font-semibold">
-                          语速: {webSpeechRate.toFixed(1)}
-                        </Label>
-                        <Input
-                          type="range"
-                          min="0.5"
-                          max="2"
-                          step="0.1"
-                          value={webSpeechRate}
-                          onChange={(e) => {
-                            setWebSpeechRate(parseFloat(e.target.value));
-                            setWebSpeechConfigModified(true);
-                          }}
-                          className="w-full"
-                        />
-                      </div>
+                    <div className="rounded-xl border border-blue-200/40 dark:border-blue-900/30 bg-blue-50/40 dark:bg-blue-900/10 p-3 sm:p-4 space-y-4">
+                      <div className={`grid grid-cols-1 gap-4`}>
+                        {/* Rate */}
+                        <div className="space-y-2">
+                          <Label className="text-sm font-semibold">
+                            语速: {webSpeechRate.toFixed(1)}
+                          </Label>
+                          <Input
+                            type="range"
+                            min="0.5"
+                            max="2"
+                            step="0.1"
+                            value={webSpeechRate}
+                            onChange={(e) => {
+                              setWebSpeechRate(parseFloat(e.target.value));
+                              setWebSpeechConfigModified(true);
+                            }}
+                            className="w-full accent-blue-600 dark:accent-blue-500"
+                          />
+                        </div>
 
-                      {/* Pitch */}
-                      <div className="space-y-2">
-                        <Label className="text-sm font-semibold">
-                          音调: {webSpeechPitch.toFixed(1)}
-                        </Label>
-                        <Input
-                          type="range"
-                          min="0"
-                          max="2"
-                          step="0.1"
-                          value={webSpeechPitch}
-                          onChange={(e) => {
-                            setWebSpeechPitch(parseFloat(e.target.value));
-                            setWebSpeechConfigModified(true);
-                          }}
-                          className="w-full"
-                        />
-                      </div>
+                        {/* Pitch */}
+                        <div className="space-y-2">
+                          <Label className="text-sm font-semibold">
+                            音调: {webSpeechPitch.toFixed(1)}
+                          </Label>
+                          <Input
+                            type="range"
+                            min="0"
+                            max="2"
+                            step="0.1"
+                            value={webSpeechPitch}
+                            onChange={(e) => {
+                              setWebSpeechPitch(parseFloat(e.target.value));
+                              setWebSpeechConfigModified(true);
+                            }}
+                            className="w-full accent-purple-600 dark:accent-purple-500"
+                          />
+                        </div>
 
-                      {/* Volume */}
-                      <div className="space-y-2">
-                        <Label className="text-sm font-semibold">
-                          音量: {webSpeechVolume.toFixed(1)}
-                        </Label>
-                        <Input
-                          type="range"
-                          min="0"
-                          max="1"
-                          step="0.1"
-                          value={webSpeechVolume}
-                          onChange={(e) => {
-                            setWebSpeechVolume(parseFloat(e.target.value));
-                            setWebSpeechConfigModified(true);
-                          }}
-                          className="w-full"
-                        />
+                        {/* Volume */}
+                        <div className="space-y-2">
+                          <Label className="text-sm font-semibold">
+                            音量: {webSpeechVolume.toFixed(1)}
+                          </Label>
+                          <Input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.1"
+                            value={webSpeechVolume}
+                            onChange={(e) => {
+                              setWebSpeechVolume(parseFloat(e.target.value));
+                              setWebSpeechConfigModified(true);
+                            }}
+                            className="w-full accent-cyan-600 dark:accent-cyan-500"
+                          />
+                        </div>
                       </div>
                     </div>
 
@@ -676,6 +690,7 @@ export default function ConfigServicePage() {
                           ? "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl"
                           : "border-2 hover:bg-gray-50"
                       }
+                      cursor-pointer
                     `}
                       >
                         <Save className="w-4 h-4 mr-2" />
@@ -686,7 +701,7 @@ export default function ConfigServicePage() {
                         onClick={resetWebSpeechConfig}
                         className={`
                       border-2 hover:bg-gray-50 font-medium transition-all duration-200
-                      ${isMobile ? "w-full h-10" : "h-11"}
+                      ${isMobile ? "w-full h-10" : "h-11"} cursor-pointer
                     `}
                       >
                         <RotateCcw className="w-4 h-4 mr-2" />
@@ -741,7 +756,7 @@ export default function ConfigServicePage() {
                       <SelectTrigger
                         className={`
                     border-2 focus:border-orange-500 transition-colors
-                    ${isMobile ? "h-10 text-sm" : "h-11"}
+                    ${isMobile ? "h-10 text-sm" : "h-11"} cursor-pointer
                   `}
                       >
                         <SelectValue placeholder="选择语音识别服务" />
