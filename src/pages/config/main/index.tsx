@@ -91,6 +91,10 @@ export default function ConfigMainPage() {
     maxWidth: getMaxWidth(),
   };
 
+  // Helper: detect local/on-device endpoints
+  const isLocalEndpoint = (url: string) =>
+    /^https?:\/\/(localhost|127\.0\.0\.1)(:\\d+)?/i.test(url || "");
+
   // 可复用的配置项组件
   const ConfigItem = ({
     icon: Icon,
@@ -241,13 +245,21 @@ export default function ConfigMainPage() {
                 <ConfigItem
                   icon={Shield}
                   label="推理服务密钥"
-                  badge="OpenAI API Key"
+                  badge={
+                    isLocalEndpoint(endpointValue)
+                      ? "OpenAI API Key（可留空）"
+                      : "OpenAI API Key"
+                  }
                   value={apiKeyValue}
                   onChange={(value) => {
                     setApiKeyValue(value);
                     setOpenaiApiKeyModified(true);
                   }}
-                  placeholder="请输入推理服务密钥"
+                  placeholder={
+                    isLocalEndpoint(endpointValue)
+                      ? "本地模型无需密钥，可留空"
+                      : "请输入推理服务密钥"
+                  }
                   type="password"
                   color="blue"
                   isModified={openaiApiKeyModified}
@@ -257,10 +269,17 @@ export default function ConfigMainPage() {
                     toast.success("推理服务密钥已恢复默认值");
                   }}
                   onSave={async () => {
-                    if (!apiKeyValue) return toast.error("请输入推理服务密钥");
-                    await setOpenaiApiKey(apiKeyValue);
+                    const isLocal = isLocalEndpoint(endpointValue);
+                    if (!apiKeyValue && !isLocal)
+                      return toast.error("请输入推理服务密钥");
+                    // 空值在本地端点时将使用默认密钥（如 'ollama'）
+                    await setOpenaiApiKey(apiKeyValue || undefined);
                     setOpenaiApiKeyModified(false);
-                    toast.success("推理服务密钥已更新");
+                    toast.success(
+                      isLocal
+                        ? "已保存（本地模型可留空）"
+                        : "推理服务密钥已更新"
+                    );
                   }}
                 />
 

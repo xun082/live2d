@@ -95,16 +95,3 @@
     padding: 6px;
   }
 }
-
-/* 确保在桌面端布局中正确显示 */
-.desktop-layout #live2d-container {
-  position: absolute !important;
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.desktop-layout #back-container {
-  position: absolute !important;
-  width: 100% !important;
-  height: 100% !important;
-}
