@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "digital-life",
+  "productName": "RWKV-VTuber",
   "version": "0.1.0",
   "identifier": "com.leafyee.digital-life",
   "build": {
