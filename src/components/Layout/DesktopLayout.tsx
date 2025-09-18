@@ -104,7 +104,7 @@ export function DesktopLayout() {
           <div className="w-full h-full overflow-hidden grid grid-rows-[1fr_auto]">
             <div
               className={`
-                w-full h-full overflow-y-auto overflow-x-hidden flex flex-col py-4
+                w-full h-full overflow-y-auto overflow-x-hidden flex flex-col
                 transition-all duration-300 scroll-smooth
                 ${
                   screenType === "tablet"
@@ -115,7 +115,7 @@ export function DesktopLayout() {
                 }
               `}
             >
-              <div className="w-full min-h-0 flex-1">
+              <div className="w-full h-full min-h-0 flex-1">
                 <Outlet />
               </div>
             </div>

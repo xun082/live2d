@@ -53,13 +53,13 @@ export function MessageItem({
       style={{ animationDelay: `${index * 50}ms` }}
     >
       <div
-        className={`max-w-[75%] p-4 rounded-2xl shadow-lg backdrop-blur-sm border transition-all duration-300 hover:shadow-xl hover:scale-[1.02] relative overflow-hidden ${
+        className={`max-w-[80%] p-4 rounded-2xl shadow-lg backdrop-blur-sm border transition-all duration-300 hover:shadow-xl relative overflow-hidden ${
           isUser
-            ? "bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 text-white border-blue-400/30 shadow-blue-500/30 before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/10 before:via-transparent before:to-transparent before:pointer-events-none"
-            : "bg-gradient-to-br from-white via-gray-50 to-blue-50/50 dark:from-gray-700 dark:via-gray-800 dark:to-blue-900/20 text-gray-800 dark:text-gray-100 border-gray-200/50 dark:border-gray-600/50 shadow-gray-500/15 before:absolute before:inset-0 before:bg-gradient-to-br before:from-blue-500/5 before:via-transparent before:to-purple-500/5 before:pointer-events-none"
+            ? "bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 text-white border-blue-500/30 shadow-blue-600/20 ml-auto"
+            : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200/60 dark:border-gray-700/60 shadow-gray-900/10 dark:shadow-black/20"
         }`}
       >
-        <div className="whitespace-pre-wrap leading-relaxed text-sm relative z-10">
+        <div className="whitespace-pre-wrap leading-relaxed text-base relative z-10">
           {content}
         </div>
         <div
@@ -81,11 +81,11 @@ export function MessageItem({
               onClick={handleSpeakClick}
               disabled={isPlaying}
               className={`
-                flex items-center justify-center w-6 h-6 rounded-full transition-all duration-200
+                flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-200
                 ${
                   isPlaying
-                    ? "bg-blue-100 text-blue-600 cursor-not-allowed"
-                    : "bg-gray-100 hover:bg-blue-100 text-gray-600 hover:text-blue-600 hover:scale-110 cursor-pointer"
+                    ? "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 cursor-not-allowed"
+                    : "bg-gray-100 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:scale-110 cursor-pointer"
                 }
                 disabled:opacity-50
               `}

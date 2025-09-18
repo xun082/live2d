@@ -9,7 +9,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
@@ -67,98 +66,90 @@ export function ChatActions({
   };
 
   return (
-    <div
-      className={`w-full flex items-center p-4 pb-2 ${
-        hasMessages ? "justify-between" : "justify-center"
-      }`}
-    >
-      {/* 左侧：聊天操作按钮 */}
-      {hasMessages && (
-        <div className="flex items-center gap-3">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={isDisabled}
-                className="h-9 px-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200/60 dark:border-gray-600/60 hover:bg-gradient-to-r hover:from-purple-500 hover:to-purple-600 hover:text-white hover:border-purple-500/50 transition-all duration-300 shadow-sm hover:shadow-md"
-              >
-                <Trash2 size={14} className="mr-2" />
-                <span className="text-xs font-medium">更新记忆</span>
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="rounded-2xl border-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-lg font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  确认更新记忆
-                </AlertDialogTitle>
-                <AlertDialogDescription className="text-gray-600 dark:text-gray-300">
-                  您确定要立即更新记忆吗？这将把当前对话保存到记忆中并清空当前对话。
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter className="gap-3">
-                <AlertDialogCancel className="rounded-xl">
-                  取消
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={onUpdateMemory}
-                  className="rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
+    <div className="w-full flex items-center justify-center">
+      <div className="flex items-center gap-1.5 p-1 bg-gray-100/80 dark:bg-gray-800/80 rounded-full backdrop-blur-sm">
+        {/* 聊天操作按钮 */}
+        {hasMessages && (
+          <>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button
+                  disabled={isDisabled}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 hover:bg-white dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  确定
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                  <Trash2 size={14} />
+                  <span>更新记忆</span>
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="rounded-2xl border-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-lg font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                    确认更新记忆
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-gray-600 dark:text-gray-300">
+                    您确定要立即更新记忆吗？这将把当前对话保存到记忆中并清空当前对话。
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="gap-3">
+                  <AlertDialogCancel className="rounded-xl">
+                    取消
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={onUpdateMemory}
+                    className="rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
+                  >
+                    确定
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
 
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={isDisabled}
-                className="h-9 px-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200/60 dark:border-gray-600/60 hover:bg-gradient-to-r hover:from-red-500 hover:to-red-600 hover:text-white hover:border-red-500/50 transition-all duration-300 shadow-sm hover:shadow-md"
-              >
-                <RotateCcw size={14} className="mr-2" />
-                <span className="text-xs font-medium">清除对话</span>
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="rounded-2xl border-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-lg font-semibold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">
-                  确认清除对话
-                </AlertDialogTitle>
-                <AlertDialogDescription className="text-gray-600 dark:text-gray-300">
-                  您确定要清除当前对话吗？此操作不可撤销。
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter className="gap-3">
-                <AlertDialogCancel className="rounded-xl">
-                  取消
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={onClearChat}
-                  className="rounded-xl bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button
+                  disabled={isDisabled}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 hover:bg-white dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  确定
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      )}
+                  <RotateCcw size={14} />
+                  <span>清除对话</span>
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="rounded-2xl border-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-lg font-semibold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">
+                    确认清除对话
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-gray-600 dark:text-gray-300">
+                    您确定要清除当前对话吗？此操作不可撤销。
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="gap-3">
+                  <AlertDialogCancel className="rounded-xl">
+                    取消
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={onClearChat}
+                    className="rounded-xl bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+                  >
+                    确定
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
 
-      {/* 语音开关和Token统计 */}
-      <div className="flex items-center gap-3">
-        {/* 语音开关按钮 - 始终显示 */}
-        <Button
-          variant="outline"
-          size="sm"
+            {/* 分隔线 */}
+            <div className="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+          </>
+        )}
+
+        {/* 语音开关按钮 */}
+        <button
           onClick={toggleSpeech}
           disabled={disabled}
-          className={`h-9 px-3 backdrop-blur-sm border-gray-200/60 dark:border-gray-600/60 transition-all duration-300 shadow-sm hover:shadow-md ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 hover:bg-white dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed ${
             isSpeechEnabled
-              ? "bg-green-100/80 dark:bg-green-900/20 hover:bg-gradient-to-r hover:from-green-500 hover:to-green-600 hover:text-white hover:border-green-500/50 text-green-700 dark:text-green-400"
-              : "bg-gray-100/80 dark:bg-gray-800/80 hover:bg-gradient-to-r hover:from-gray-500 hover:to-gray-600 hover:text-white hover:border-gray-500/50"
+              ? "text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300"
+              : "text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
           }`}
           title={
             isSpeechEnabled
@@ -166,28 +157,20 @@ export function ChatActions({
               : "语音播放已关闭"
           }
         >
-          {isSpeechEnabled ? (
-            <Volume2 size={14} className="mr-2" />
-          ) : (
-            <VolumeX size={14} className="mr-2" />
-          )}
-          <span className="text-xs font-medium">
-            {isSpeechEnabled ? "语音开启" : "语音关闭"}
-          </span>
-        </Button>
+          {isSpeechEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
+          <span>{isSpeechEnabled ? "语音开启" : "语音关闭"}</span>
+        </button>
 
         {/* Token统计 */}
         {typeof usedToken === "number" && usedToken > 0 && (
           <Popover>
             <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
+              <button
                 disabled={disabled}
-                className="h-9 w-9 p-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200/60 dark:border-gray-600/60 hover:bg-gradient-to-r hover:from-blue-500 hover:to-blue-600 hover:text-white hover:border-blue-500/50 transition-all duration-300 shadow-sm hover:shadow-md"
+                className="flex items-center justify-center w-7 h-7 rounded-full transition-all duration-200 hover:bg-white dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <BarChart3 size={16} />
-              </Button>
+                <BarChart3 size={14} />
+              </button>
             </PopoverTrigger>
             <PopoverContent className="rounded-xl bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-gray-200/60 dark:border-gray-700/60">
               <div className="flex items-center gap-2">

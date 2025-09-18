@@ -1,6 +1,6 @@
 export function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-center animate-in fade-in-0 duration-500">
+    <div className="flex flex-col items-center justify-center text-center animate-in fade-in-0 duration-500">
       <div className="relative mb-6">
         <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-purple-600 to-pink-600 rounded-full flex items-center justify-center shadow-xl shadow-blue-500/25 animate-bounce">
           <svg
