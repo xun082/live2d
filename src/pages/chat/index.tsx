@@ -92,7 +92,9 @@ export default function ChatPage() {
 
         {/* 聊天区域 */}
         <div
-          className="flex-1 min-h-0 overflow-auto bg-gradient-to-br from-slate-50/60 via-blue-50/40 to-indigo-50/60 dark:from-gray-800/60 dark:via-blue-900/30 dark:to-indigo-900/40 custom-scrollbar relative grid place-items-center"
+          className={`flex-1 min-h-0 overflow-auto bg-gradient-to-br from-slate-50/60 via-blue-50/40 to-indigo-50/60 dark:from-gray-800/60 dark:via-blue-900/30 dark:to-indigo-900/40 custom-scrollbar relative ${
+            messages.length ? "flex flex-col" : "grid place-items-center"
+          }`}
           ref={messagesRef}
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.05),transparent_70%)] pointer-events-none"></div>
